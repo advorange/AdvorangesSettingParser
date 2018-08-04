@@ -7,7 +7,7 @@ using AdvorangesUtils;
 namespace AdvorangesSettingParser
 {
 	/// <summary>
-	/// A generic class for option, specifying what the option type is.
+	/// A generic class for a setting, specifying what the setting type is.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	public sealed class Setting<T> : ISetting
@@ -79,8 +79,8 @@ namespace AdvorangesSettingParser
 		/// <summary>
 		/// Creates an instance of <see cref="Setting{T}"/>.
 		/// </summary>
-		/// <param name="names">The names to use for this option. Must supply at least one name. The first name will be designated the main name.</param>
-		/// <param name="setter">The setter to use for this option.</param>
+		/// <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
+		/// <param name="setter">The setter to use for this setting.</param>
 		/// <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type.</param>
 		public Setting(IEnumerable<string> names, Action<T> setter, TryParseDelegate<T> parser = default)
 		{

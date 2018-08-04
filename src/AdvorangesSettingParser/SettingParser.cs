@@ -9,7 +9,7 @@ using AdvorangesUtils;
 namespace AdvorangesSettingParser
 {
 	/// <summary>
-	/// Parses options and then sets them.
+	/// Parses settings and then sets them.
 	/// </summary>
 	/// <remarks>Reserved setting names: help, h</remarks>
 	public sealed class SettingParser : ICollection<ISetting>
