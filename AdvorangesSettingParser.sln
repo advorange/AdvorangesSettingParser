@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvorangesSettingParser", "src\AdvorangesSettingParser\AdvorangesSettingParser.csproj", "{B70425AE-85EE-4D3F-9193-8A8F549F971A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvorangesSettingParser.Tests", "tests\AdvorangesSettingParser.Tests\AdvorangesSettingParser.Tests.csproj", "{E1775C34-3397-4E1E-BB11-A8C2EBB0D6B6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B70425AE-85EE-4D3F-9193-8A8F549F971A} = {B70425AE-85EE-4D3F-9193-8A8F549F971A}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B70425AE-85EE-4D3F-9193-8A8F549F971A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B70425AE-85EE-4D3F-9193-8A8F549F971A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B70425AE-85EE-4D3F-9193-8A8F549F971A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B70425AE-85EE-4D3F-9193-8A8F549F971A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1775C34-3397-4E1E-BB11-A8C2EBB0D6B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1775C34-3397-4E1E-BB11-A8C2EBB0D6B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1775C34-3397-4E1E-BB11-A8C2EBB0D6B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1775C34-3397-4E1E-BB11-A8C2EBB0D6B6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {601957FD-77CD-41AD-846C-514DFE87A7CB}
+	EndGlobalSection
+EndGlobal
