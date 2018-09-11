@@ -8,6 +8,7 @@
     <Description>A basic setting parser which may not necessarily be completely safe but is easy to use.</Description>
     <RepositoryType>https://github.com/advorange/AdvorangesSettingParser</RepositoryType>
     <PackageProjectUrl>https://github.com/advorange/AdvorangesSettingParser</PackageProjectUrl>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
