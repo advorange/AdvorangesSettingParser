@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
 
 namespace AdvorangesSettingParser
 {
@@ -16,8 +16,8 @@ namespace AdvorangesSettingParser
 		/// </summary>
 		string Information { get; }
 		/// <summary>
-		/// Indicates the setting is a boolean which only requires an attempt at parsing it for it to set itself to true.
-		/// The passed in string will always be <see cref="Boolean.TrueString"/>.
+		/// Indicates the setting is a boolean which only requires an attempt at parsing it for it to switch its value.
+		/// The passed in string will either be <see cref="bool.TrueString"/> or <see cref="bool.FalseString"/>.
 		/// </summary>
 		bool IsFlag { get; set; }
 		/// <summary>
@@ -39,11 +39,19 @@ namespace AdvorangesSettingParser
 		/// <summary>
 		/// The names of this command.
 		/// </summary>
-		ImmutableArray<string> Names { get; }
+		IEnumerable<string> Names { get; }
+		/// <summary>
+		/// The first value in <see cref="Names"/>.
+		/// </summary>
+		string MainName { get; }
 		/// <summary>
 		/// The current value of the setting.
 		/// </summary>
 		object CurrentValue { get; }
+		/// <summary>
+		/// The default value of the setting.
+		/// </summary>
+		object DefaultValue { get; }
 
 		/// <summary>
 		/// Sets the value back to its default value.

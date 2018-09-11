@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -8,28 +7,18 @@ namespace AdvorangesSettingParser
 	/// <summary>
 	/// Holds the results of parsing settings.
 	/// </summary>
-	public struct SettingParserResults
+	public struct SettingParserResults : ISettingParserResults
 	{
-		/// <summary>
-		/// Parts that were not used to set something.
-		/// </summary>
-		public readonly ImmutableArray<string> UnusedParts;
-		/// <summary>
-		/// All successfully set settings.
-		/// </summary>
-		public readonly ImmutableArray<string> Successes;
-		/// <summary>
-		/// Any errors which occurred when setting something.
-		/// </summary>
-		public readonly ImmutableArray<string> Errors;
-		/// <summary>
-		/// Result gotten via the help setting.
-		/// </summary>
-		public readonly ImmutableArray<string> Help;
-		/// <summary>
-		/// Returns true if <see cref="UnusedParts"/> and <see cref="Errors"/> are both empty.
-		/// </summary>
-		public readonly bool IsSuccess;
+		/// <inheritdoc />
+		public IEnumerable<string> UnusedParts { get; }
+		/// <inheritdoc />
+		public IEnumerable<string> Successes { get; }
+		/// <inheritdoc />
+		public IEnumerable<string> Errors { get; }
+		/// <inheritdoc />
+		public IEnumerable<string> Help { get; }
+		/// <inheritdoc />
+		public bool IsSuccess { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="SettingParserResults"/>.
@@ -46,28 +35,28 @@ namespace AdvorangesSettingParser
 			Help = (help ?? Enumerable.Empty<string>()).Where(x => x != null).ToImmutableArray();
 			IsSuccess = !UnusedParts.Any() && !Errors.Any();
 		}
-		
+
 		/// <inheritdoc />
 		public override string ToString()
 		{
 			var responses = new List<string>();
 			if (Help.Any())
 			{
-				responses.Add(String.Join("\n", Help));
+				responses.Add(string.Join("\n", Help));
 			}
 			if (Successes.Any())
 			{
-				responses.Add(String.Join("\n", Successes));
+				responses.Add(string.Join("\n", Successes));
 			}
 			if (Errors.Any())
 			{
-				responses.Add($"The following errors occurred:\n{String.Join("\n\t", Errors)}");
+				responses.Add($"The following errors occurred:\n{string.Join("\n\t", Errors)}");
 			}
 			if (UnusedParts.Any())
 			{
-				responses.Add($"The following parts were extra; was an argument mistyped? '{String.Join("', '", UnusedParts)}'");
+				responses.Add($"The following parts were extra; was an argument mistyped? '{string.Join("', '", UnusedParts)}'");
 			}
-			return String.Join("\n", responses) + "\n";
+			return string.Join("\n", responses) + "\n";
 		}
 	}
 }

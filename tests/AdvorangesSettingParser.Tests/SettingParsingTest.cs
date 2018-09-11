@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using AdvorangesSettingParser;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -35,7 +36,7 @@ namespace ImageDL.Tests.SettingParsingTests
 		[TestMethod]
 		public void BasicParsing_Test()
 		{
-			var pf = SettingParser.Prefixes[0];
+			var pf = SettingParser.Prefixes.First();
 			SettingParser.Parse($"{pf}{nameof(TestStruct.StringValue)} StringValueTest");
 			Assert.AreEqual("StringValueTest", TestStruct.StringValue);
 			SettingParser.Parse($"{pf}{nameof(TestStruct.IntValue)} 1");
@@ -52,17 +53,17 @@ namespace ImageDL.Tests.SettingParsingTests
 		[TestMethod]
 		public void ComplicatedParsing_Test()
 		{
-			var pf = SettingParser.Prefixes[0];
+			var pf = SettingParser.Prefixes.First();
 			var result = SettingParser.Parse($"{pf}{nameof(TestStruct.StringValue)} StringValueTest2 " +
 				$"{pf}{nameof(TestStruct.FlagValue2)} " +
 				$"{pf}{nameof(TestStruct.BoolValue)} true " +
 				$"{pf}{nameof(TestStruct.UlongValue)} asdf " +
 				$"{pf}help {nameof(TestStruct.FlagValue2)} " +
 				$"extra");
-			Assert.AreEqual(3, result.Successes.Length);
-			Assert.AreEqual(1, result.Errors.Length);
-			Assert.AreEqual(1, result.UnusedParts.Length);
-			Assert.AreEqual(1, result.Help.Length);
+			Assert.AreEqual(3, result.Successes.Count());
+			Assert.AreEqual(1, result.Errors.Count());
+			Assert.AreEqual(1, result.UnusedParts.Count());
+			Assert.AreEqual(1, result.Help.Count());
 			Assert.AreEqual("StringValueTest2", TestStruct.StringValue);
 			Assert.AreEqual(true, TestStruct.FlagValue2);
 			Assert.AreEqual(true, TestStruct.BoolValue);
@@ -70,7 +71,7 @@ namespace ImageDL.Tests.SettingParsingTests
 		}
 	}
 
-	struct TestStruct
+	internal struct TestStruct
 	{
 		public string StringValue { get; set; }
 		public int IntValue { get; set; }

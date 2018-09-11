@@ -19,14 +19,14 @@ namespace AdvorangesSettingParser
 		{
 			get
 			{
-				var help = $"{Names[0]}: {Description}";
+				var help = $"{MainName}: {Description}";
 				if (!EqualityComparer<T>.Default.Equals(DefaultValue, default))
 				{
 					help += $" Default value is {DefaultValue}.";
 				}
 				if (typeof(T).IsEnum)
 				{
-					help += $"{Environment.NewLine}Acceptable values: {String.Join(", ", Enum.GetNames(typeof(T)))}";
+					help += $"{Environment.NewLine}Acceptable values: {string.Join(", ", Enum.GetNames(typeof(T)))}";
 				}
 				return help;
 			}
@@ -51,11 +51,15 @@ namespace AdvorangesSettingParser
 		/// <inheritdoc />
 		public bool HasBeenSet { get; private set; }
 		/// <inheritdoc />
-		public bool IsHelp => Names.Any(x => x.CaseInsEquals("help") || x.CaseInsEquals("h"));
+		public bool IsHelp { get; }
 		/// <inheritdoc />
-		public ImmutableArray<string> Names { get; }
+		public IEnumerable<string> Names { get; }
 		/// <inheritdoc />
-		public object CurrentValue => _CurrentValue;
+		public string MainName { get; }
+		/// <summary>
+		/// The current value of the setting.
+		/// </summary>
+		public T CurrentValue { get; private set; }
 		/// <summary>
 		/// Default value of the setting. This will indicate the setting is optional, but has a value other than the default value of the type.
 		/// </summary>
@@ -73,7 +77,6 @@ namespace AdvorangesSettingParser
 		private readonly TryParseDelegate<T> _Parser;
 		private readonly Action<T> _Setter;
 		private T _DefaultValue;
-		private T _CurrentValue;
 		private bool _IsFlag;
 
 		/// <summary>
@@ -90,6 +93,8 @@ namespace AdvorangesSettingParser
 			}
 
 			Names = names.ToImmutableArray();
+			MainName = Names.First();
+			IsHelp = Names.Any(x => x.CaseInsEquals("help") || x.CaseInsEquals("h"));
 			_Setter = setter ?? throw new ArgumentException("Invalid setter supplied.");
 			_Parser = parser ?? GetPrimitiveParser();
 		}
@@ -98,7 +103,7 @@ namespace AdvorangesSettingParser
 		public void SetDefault()
 		{
 			_Setter(DefaultValue);
-			_CurrentValue = DefaultValue;
+			CurrentValue = DefaultValue;
 		}
 		/// <inheritdoc />
 		public bool TrySetValue(string value, out string response)
@@ -120,14 +125,14 @@ namespace AdvorangesSettingParser
 			}
 			if (result == null && CannotBeNull)
 			{
-				response = $"{Names[0]} cannot be set to 'NULL'.";
+				response = $"{MainName} cannot be set to 'NULL'.";
 				return false;
 			}
 
 			try
 			{
 				_Setter(result);
-				_CurrentValue = result;
+				CurrentValue = result;
 			}
 			//Catch all because who knows what exceptions will happen, and it's user input
 			catch (Exception e)
@@ -136,19 +141,21 @@ namespace AdvorangesSettingParser
 				return false;
 			}
 			HasBeenSet = true;
-			response = $"Successfully set {Names[0]} to '{result?.ToString() ?? "NULL"}'.";
+			response = $"Successfully set {MainName} to '{result?.ToString() ?? "NULL"}'.";
 			return true;
 		}
 		/// <inheritdoc />
 		public override string ToString()
-		{
-			return $"{Names[0]} ({typeof(T).Name})";
-		}
-
+			=> $"{MainName} ({typeof(T).Name})";
+		/// <summary>
+		/// Attempts to get a parser for a primitive type.
+		/// </summary>
+		/// <returns></returns>
 		private TryParseDelegate<T> GetPrimitiveParser()
 		{
 			switch (typeof(T).Name)
 			{
+				//I know this looks bad, but it's the easiest way to do this. It is still type safe anyways.
 				case nameof(SByte):
 					return (TryParseDelegate<T>)(object)new TryParseDelegate<sbyte>(s => (sbyte.TryParse(s, out var result), result));
 				case nameof(Byte):
@@ -182,5 +189,9 @@ namespace AdvorangesSettingParser
 					throw new ArgumentException($"Unable to find a primitive converter for the supplied type {typeof(T).Name}.");
 			}
 		}
+
+		///ISetting
+		object ISetting.CurrentValue => CurrentValue;
+		object ISetting.DefaultValue => DefaultValue;
 	}
 }

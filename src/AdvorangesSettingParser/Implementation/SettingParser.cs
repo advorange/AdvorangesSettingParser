@@ -12,22 +12,17 @@ namespace AdvorangesSettingParser
 	/// Parses settings and then sets them.
 	/// </summary>
 	/// <remarks>Reserved setting names: help, h</remarks>
-	public sealed class SettingParser : ICollection<ISetting>
+	public sealed class SettingParser : ISettingParser, ICollection<ISetting>
 	{
 		/// <summary>
 		/// The default prefixes used for setting parsing.
 		/// </summary>
-		public static readonly ImmutableArray<string> DefaultPrefixes = new[] { "-", "--", "/" }.ToImmutableArray();
+		public static IEnumerable<string> DefaultPrefixes { get; } = new[] { "-", "--", "/" }.ToImmutableArray();
 
-		/// <summary>
-		/// Valid prefixes for a setting.
-		/// </summary>
-		public ImmutableArray<string> Prefixes { get; }
-		/// <summary>
-		/// Returns true if every setting has been set or is optional.
-		/// </summary>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public bool AllSet => !_SettingMap.Values.Any(x => !(x.HasBeenSet || x.IsOptional));
+		/// <inheritdoc />
+		public IEnumerable<string> Prefixes { get; }
 		/// <inheritdoc />
 		public bool IsReadOnly => false;
 		/// <inheritdoc />
@@ -39,19 +34,30 @@ namespace AdvorangesSettingParser
 		/// <summary>
 		/// Creates an instance of <see cref="SettingParser"/> with -, --, and / as valid prefixes and adds a help command.
 		/// </summary>
-		public SettingParser() : this(true, DefaultPrefixes.ToArray()) { }
+		public SettingParser() : this(true, DefaultPrefixes) { }
 		/// <summary>
-		/// Creates an instance of <see cref="SettingParser"/>.
+		/// Creates an instance of <see cref="SettingParser"/> with -, --, and / as valid prefixes and optionally adds a help command.
+		/// </summary>
+		/// <param name="addHelp"></param>
+		public SettingParser(bool addHelp) : this(addHelp, DefaultPrefixes) { }
+		/// <summary>
+		/// Creates an instance of <see cref="SettingParser"/> with the supplied prefixes and optionally adds a help command.
 		/// </summary>
 		/// <param name="addHelp"></param>
 		/// <param name="prefixes"></param>
-		public SettingParser(bool addHelp, params char[] prefixes) : this(addHelp, prefixes.Select(x => x.ToString()).ToArray()) { }
+		public SettingParser(bool addHelp, params char[] prefixes) : this(addHelp, prefixes.Select(x => x.ToString())) { }
 		/// <summary>
-		/// Creates an instance of <see cref="SettingParser"/>.
+		/// Creates an instance of <see cref="SettingParser"/> with the supplied prefixes and optionally adds a help command.
 		/// </summary>
 		/// <param name="addHelp"></param>
 		/// <param name="prefixes"></param>
-		public SettingParser(bool addHelp, params string[] prefixes)
+		public SettingParser(bool addHelp, params string[] prefixes) : this(addHelp, (IEnumerable<string>)prefixes) { }
+		/// <summary>
+		/// Creates an instance of <see cref="SettingParser"/> with the supplied prefixes and optionally adds a help command.
+		/// </summary>
+		/// <param name="addHelp"></param>
+		/// <param name="prefixes"></param>
+		public SettingParser(bool addHelp, IEnumerable<string> prefixes)
 		{
 			if (addHelp)
 			{
@@ -71,9 +77,7 @@ namespace AdvorangesSettingParser
 		/// <param name="input"></param>
 		/// <returns></returns>
 		public static Dictionary<string, string> Parse(string[] prefixes, string input)
-		{
-			return Parse(prefixes, input.SplitLikeCommandLine());
-		}
+			=> Parse(prefixes, input.SplitLikeCommandLine());
 		/// <summary>
 		/// Returns a dictionary of names and their values. Names are only counted if they begin with a passed in prefix.
 		/// </summary>
@@ -109,20 +113,70 @@ namespace AdvorangesSettingParser
 			}
 			return dict;
 		}
-		/// <summary>
-		/// Finds settings and then sets their value.
-		/// </summary>
-		/// <param name="input"></param>
-		public SettingParserResults Parse(string input)
+		/// <inheritdoc />
+		public string GetHelp(string name)
 		{
-			return Parse(input.SplitLikeCommandLine());
+			if (string.IsNullOrWhiteSpace(name))
+			{
+				var vals = _SettingMap.Values
+					.Select(x => x.Names.Count() < 2 ? x.MainName : $"{x.MainName} ({string.Join(", ", x.Names.Skip(1))})");
+				return $"All Settings:{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", vals)}";
+			}
+			return GetSetting(name, PrefixState.NotPrefixed) is ISetting setting
+				? setting.Information
+				: $"'{name}' is not a valid setting.";
 		}
-		/// <summary>
-		/// Finds settings and then sets their value.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public SettingParserResults Parse(string[] input)
+		/// <inheritdoc />
+		public string GetNeededSettings()
+		{
+			var unsetArguments = _SettingMap.Values.Where(x => !(x.HasBeenSet || x.IsOptional));
+			if (!unsetArguments.Any())
+			{
+				return $"Every setting which is necessary has been set.";
+			}
+			var sb = new StringBuilder("The following settings need to be set:" + Environment.NewLine);
+			foreach (var setting in unsetArguments)
+			{
+				sb.AppendLine($"\t{setting.ToString()}");
+			}
+			return sb.ToString().Trim() + Environment.NewLine;
+		}
+		/// <inheritdoc />
+		public ISetting GetSetting(string name, PrefixState state)
+		{
+			foreach (var prefix in Prefixes)
+			{
+				string val;
+				switch (state)
+				{
+					case PrefixState.Required:
+						if (!name.CaseInsStartsWith(prefix))
+						{
+							continue;
+						}
+						val = name.Substring(prefix.Length);
+						break;
+					case PrefixState.Optional:
+						val = name.CaseInsStartsWith(prefix) ? name.Substring(prefix.Length) : name;
+						break;
+					case PrefixState.NotPrefixed:
+						val = name;
+						break;
+					default:
+						throw new InvalidOperationException("Invalid prefix state provided.");
+				}
+				if (_NameMap.TryGetValue(val, out var guid))
+				{
+					return _SettingMap[guid];
+				}
+			}
+			return null;
+		}
+		/// <inheritdoc />
+		public ISettingParserResults Parse(string input)
+			=> Parse(input.SplitLikeCommandLine());
+		/// <inheritdoc />
+		public ISettingParserResults Parse(string[] input)
 		{
 			var unusedParts = new List<string>();
 			var successes = new List<string>();
@@ -142,7 +196,7 @@ namespace AdvorangesSettingParser
 				//If it's a flag set its value to true then go to the next part
 				if (setting.IsFlag)
 				{
-					value = (bool)setting.CurrentValue ? Boolean.FalseString : Boolean.TrueString;
+					value = (bool)setting.CurrentValue ? bool.FalseString : bool.TrueString;
 				}
 				//If there's one more and it's not a setting use that
 				else if (input.Length - 1 > i && !(GetSetting(input[i + 1], PrefixState.Required) is ISetting throwaway))
@@ -177,79 +231,6 @@ namespace AdvorangesSettingParser
 			}
 			return new SettingParserResults(unusedParts, successes, errors, help);
 		}
-		/// <summary>
-		/// Returns a string asking for unset settings.
-		/// </summary>
-		/// <returns></returns>
-		public string GetNeededSettings()
-		{
-			var unsetArguments = _SettingMap.Values.Where(x => !(x.HasBeenSet || x.IsOptional));
-			if (!unsetArguments.Any())
-			{
-				return $"Every setting which is necessary has been set.";
-			}
-			var sb = new StringBuilder("The following settings need to be set:" + Environment.NewLine);
-			foreach (var setting in unsetArguments)
-			{
-				sb.AppendLine($"\t{setting.ToString()}");
-			}
-			return sb.ToString().Trim() + Environment.NewLine;
-		}
-		/// <summary>
-		/// Gets the help information associated with this setting name.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public string GetHelp(string name)
-		{
-			if (String.IsNullOrWhiteSpace(name))
-			{
-				var vals = _SettingMap.Values.Select(x =>
-				{
-					return x.Names.Length < 2 ? x.Names[0] : $"{x.Names[0]} ({String.Join(", ", x.Names.Skip(1))})";
-				});
-				return $"All Settings:{Environment.NewLine}\t{String.Join($"{Environment.NewLine}\t", vals)}";
-			}
-			return GetSetting(name, PrefixState.NotPrefixed) is ISetting setting
-				? setting.Information
-				: $"'{name}' is not a valid setting.";
-		}
-		/// <summary>
-		/// Gets a setting with the supplied name. The setting must start with a prefix.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="state"></param>
-		/// <returns></returns>
-		public ISetting GetSetting(string name, PrefixState state)
-		{
-			foreach (var prefix in Prefixes)
-			{
-				string val;
-				switch (state)
-				{
-					case PrefixState.Required:
-						if (!name.CaseInsStartsWith(prefix))
-						{
-							continue;
-						}
-						val = name.Substring(prefix.Length);
-						break;
-					case PrefixState.Optional:
-						val = name.CaseInsStartsWith(prefix) ? name.Substring(prefix.Length) : name;
-						break;
-					case PrefixState.NotPrefixed:
-						val = name;
-						break;
-					default:
-						throw new InvalidOperationException("Invalid prefix state provided.");
-				}
-				if (_NameMap.TryGetValue(val, out var guid))
-				{
-					return _SettingMap[guid];
-				}
-			}
-			return null;
-		}
 		/// <inheritdoc />
 		public void Add(ISetting setting)
 		{
@@ -263,7 +244,7 @@ namespace AdvorangesSettingParser
 		/// <inheritdoc />
 		public bool Remove(ISetting setting)
 		{
-			if (!_NameMap.TryGetValue(setting.Names[0], out var guid))
+			if (!_NameMap.TryGetValue(setting.MainName, out var guid))
 			{
 				return false;
 			}
@@ -275,9 +256,7 @@ namespace AdvorangesSettingParser
 		}
 		/// <inheritdoc />
 		public bool Contains(ISetting setting)
-		{
-			return _SettingMap.Values.Contains(setting);
-		}
+			=> _SettingMap.Values.Contains(setting);
 		/// <inheritdoc />
 		public void Clear()
 		{
@@ -286,18 +265,12 @@ namespace AdvorangesSettingParser
 		}
 		/// <inheritdoc />
 		public void CopyTo(ISetting[] array, int index)
-		{
-			_SettingMap.Values.CopyTo(array, index);
-		}
+			=> _SettingMap.Values.CopyTo(array, index);
 		/// <inheritdoc />
 		public IEnumerator<ISetting> GetEnumerator()
-		{
-			return _SettingMap.Values.GetEnumerator();
-		}
+			=> _SettingMap.Values.GetEnumerator();
 		/// <inheritdoc />
 		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return _SettingMap.Values.GetEnumerator();
-		}
+			=> _SettingMap.Values.GetEnumerator();
 	}
 }
