@@ -10,8 +10,9 @@ namespace AdvorangesSettingParser
 {
 	/// <summary>
 	/// Parses settings and then sets them.
+	/// This implementation is case-insensitive.
 	/// </summary>
-	/// <remarks>Reserved setting names: help, h</remarks>
+	/// <remarks>Reserved setting names: help, h (unless help command is not added)</remarks>
 	public sealed class SettingParser : ISettingParser, ICollection<ISetting>
 	{
 		/// <summary>
@@ -19,8 +20,6 @@ namespace AdvorangesSettingParser
 		/// </summary>
 		public static IEnumerable<string> DefaultPrefixes { get; } = new[] { "-", "--", "/" }.ToImmutableArray();
 
-		/// <inheritdoc />
-		public bool AllSet => !_SettingMap.Values.Any(x => !(x.HasBeenSet || x.IsOptional));
 		/// <inheritdoc />
 		public IEnumerable<string> Prefixes { get; }
 		/// <inheritdoc />
@@ -114,50 +113,33 @@ namespace AdvorangesSettingParser
 			return dict;
 		}
 		/// <inheritdoc />
-		public string GetHelp(string name)
-		{
-			if (string.IsNullOrWhiteSpace(name))
-			{
-				var vals = _SettingMap.Values
-					.Select(x => x.Names.Count() < 2 ? x.MainName : $"{x.MainName} ({string.Join(", ", x.Names.Skip(1))})");
-				return $"All Settings:{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", vals)}";
-			}
-			return GetSetting(name, PrefixState.NotPrefixed) is ISetting setting
-				? setting.Information
-				: $"'{name}' is not a valid setting.";
-		}
-		/// <inheritdoc />
-		public string GetNeededSettings()
-		{
-			var unsetArguments = _SettingMap.Values.Where(x => !(x.HasBeenSet || x.IsOptional));
-			if (!unsetArguments.Any())
-			{
-				return $"Every setting which is necessary has been set.";
-			}
-			var sb = new StringBuilder("The following settings need to be set:" + Environment.NewLine);
-			foreach (var setting in unsetArguments)
-			{
-				sb.AppendLine($"\t{setting.ToString()}");
-			}
-			return sb.ToString().Trim() + Environment.NewLine;
-		}
+		public IEnumerable<ISetting> GetSettings()
+			=> _SettingMap.Values;
 		/// <inheritdoc />
 		public ISetting GetSetting(string name, PrefixState state)
 		{
+			var settings = GetSettings();
 			foreach (var prefix in Prefixes)
 			{
 				string val;
 				switch (state)
 				{
+					//Break switch if match found, else continue loop
 					case PrefixState.Required:
-						if (!name.CaseInsStartsWith(prefix))
+						if (name.CaseInsStartsWith(prefix))
 						{
-							continue;
+							val = name.Substring(prefix.Length);
+							break;
 						}
-						val = name.Substring(prefix.Length);
-						break;
+						continue;
+					//Break switch if match found, also break switch if match found
 					case PrefixState.Optional:
-						val = name.CaseInsStartsWith(prefix) ? name.Substring(prefix.Length) : name;
+						if (name.CaseInsStartsWith(prefix))
+						{
+							val = name.Substring(prefix.Length);
+							break;
+						}
+						val = name;
 						break;
 					case PrefixState.NotPrefixed:
 						val = name;
@@ -171,6 +153,21 @@ namespace AdvorangesSettingParser
 				}
 			}
 			return null;
+		}
+		/// <inheritdoc />
+		public string GetHelp(string name)
+		{
+			if (string.IsNullOrWhiteSpace(name))
+			{
+				var values = GetSettings().Select(x =>
+				{
+					return x.Names.Count() < 2 ? x.MainName : $"{x.MainName} ({string.Join(", ", x.Names.Skip(1))})";
+				});
+				return $"All Settings:{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", values)}";
+			}
+			return GetSetting(name, PrefixState.NotPrefixed) is ISetting setting
+				? setting.Information
+				: $"'{name}' is not a valid setting.";
 		}
 		/// <inheritdoc />
 		public ISettingParserResults Parse(string input)
@@ -196,7 +193,7 @@ namespace AdvorangesSettingParser
 				//If it's a flag set its value to true then go to the next part
 				if (setting.IsFlag)
 				{
-					value = (bool)setting.CurrentValue ? bool.FalseString : bool.TrueString;
+					value = setting is IDirectGetter<bool> getter && getter.GetValue() ? bool.FalseString : bool.TrueString;
 				}
 				//If there's one more and it's not a setting use that
 				else if (input.Length - 1 > i && !(GetSetting(input[i + 1], PrefixState.Required) is ISetting throwaway))

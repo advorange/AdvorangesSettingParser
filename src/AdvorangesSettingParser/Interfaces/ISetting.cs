@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AdvorangesSettingParser
 {
@@ -7,6 +8,14 @@ namespace AdvorangesSettingParser
 	/// </summary>
 	public interface ISetting
 	{
+		/// <summary>
+		/// The names of this command.
+		/// </summary>
+		IEnumerable<string> Names { get; }
+		/// <summary>
+		/// The first value in <see cref="Names"/>.
+		/// </summary>
+		string MainName { get; }
 		/// <summary>
 		/// String indicating what this setting does.
 		/// </summary>
@@ -36,38 +45,13 @@ namespace AdvorangesSettingParser
 		/// Indicates this is for providing help, and is not necessarily a setting.
 		/// </summary>
 		bool IsHelp { get; }
-		/// <summary>
-		/// The names of this command.
-		/// </summary>
-		IEnumerable<string> Names { get; }
-		/// <summary>
-		/// The first value in <see cref="Names"/>.
-		/// </summary>
-		string MainName { get; }
-		/// <summary>
-		/// The current value of the setting.
-		/// </summary>
-		object CurrentValue { get; }
-		/// <summary>
-		/// The default value of the setting.
-		/// </summary>
-		object DefaultValue { get; }
 
-		/// <summary>
-		/// Sets the value back to its default value.
-		/// </summary>
-		void SetDefault();
 		/// <summary>
 		/// Converts the value to the required type and sets the property/field.
 		/// </summary>
-		/// <param name="value"></param>
-		/// <param name="response"></param>
-		/// <returns></returns>
+		/// <param name="value">The passed in argument to convert.</param>
+		/// <param name="response">Response which can either be a success or failure string.</param>
+		/// <returns>Whether the value has successfully been set.</returns>
 		bool TrySetValue(string value, out string response);
-		/// <summary>
-		/// Returns the setting's name.
-		/// </summary>
-		/// <returns></returns>
-		string ToString();
 	}
 }

@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using AdvorangesUtils;
 
 namespace AdvorangesSettingParser
@@ -10,7 +13,7 @@ namespace AdvorangesSettingParser
 	/// A generic class for a setting, specifying what the setting type is.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public sealed class Setting<T> : ISetting
+	public class Setting<T> : ICompleteSetting<T>
 	{
 		/// <inheritdoc />
 		public string Description { get; set; }
@@ -20,10 +23,6 @@ namespace AdvorangesSettingParser
 			get
 			{
 				var help = $"{MainName}: {Description}";
-				if (!EqualityComparer<T>.Default.Equals(DefaultValue, default))
-				{
-					help += $" Default value is {DefaultValue}.";
-				}
 				if (typeof(T).IsEnum)
 				{
 					help += $"{Environment.NewLine}Acceptable values: {string.Join(", ", Enum.GetNames(typeof(T)))}";
@@ -56,19 +55,15 @@ namespace AdvorangesSettingParser
 		public IEnumerable<string> Names { get; }
 		/// <inheritdoc />
 		public string MainName { get; }
-		/// <summary>
-		/// The current value of the setting.
-		/// </summary>
-		public T CurrentValue { get; private set; }
-		/// <summary>
-		/// Default value of the setting. This will indicate the setting is optional, but has a value other than the default value of the type.
-		/// </summary>
-		public T DefaultValue
+		/// <inheritdoc />
+		public Func<T, bool> Validation { get; set; } = x => true;
+		/// <inheritdoc />
+		public Func<T> DefaultValueFactory
 		{
-			get => _DefaultValue;
+			get => _DefaultValueFactory;
 			set
 			{
-				_DefaultValue = value;
+				_DefaultValueFactory = value;
 				HasBeenSet = true;
 				SetDefault();
 			}
@@ -76,16 +71,52 @@ namespace AdvorangesSettingParser
 
 		private readonly TryParseDelegate<T> _Parser;
 		private readonly Action<T> _Setter;
-		private T _DefaultValue;
+		private readonly Func<T> _Getter;
+		//Only used when getter is null, this caches changes from inside this class
+		private T _LastSetValue;
+		private Func<T> _DefaultValueFactory;
 		private bool _IsFlag;
 
 		/// <summary>
-		/// Creates an instance of <see cref="Setting{T}"/>.
+		/// Creates an instance of <see cref="Setting{T}"/> with full setter capabilities and optional getter capabilities.
 		/// </summary>
 		/// <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
 		/// <param name="setter">The setter to use for this setting.</param>
+		/// <param name="getter">The getter to use for this setting.</param>
 		/// <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type.</param>
-		public Setting(IEnumerable<string> names, Action<T> setter, TryParseDelegate<T> parser = default)
+		public Setting(IEnumerable<string> names, Action<T> setter, Func<T> getter = default, TryParseDelegate<T> parser = default)
+			: this(names, parser, false)
+		{
+			_Getter = getter;
+			_Setter = setter ?? throw new ArgumentException(nameof(setter));
+		}
+		/// <summary>
+		/// Creates an instance of <see cref="Setting{T}"/> with full getter and setter capabilities.
+		/// </summary>
+		/// <param name="names"></param>
+		/// <param name="strongBox"></param>
+		/// <param name="parser"></param>
+		public Setting(IEnumerable<string> names, StrongBox<T> strongBox, TryParseDelegate<T> parser = default)
+			: this(names, parser, false)
+		{
+			if (strongBox == null)
+			{
+				throw new ArgumentException(nameof(strongBox));
+			}
+
+			_Getter = () => strongBox.Value;
+			_Setter = x => strongBox.Value = x;
+		}
+		/// <summary>
+		/// Creates an instance of <see cref="Setting{T}"/> with setter and getter capabilities on itself.
+		/// This is generally not useful and defeats the purpose of this class (modifying external values).
+		/// </summary>
+		/// <param name="dog"></param>
+		/// <param name="names"></param>
+		/// <param name="parser"></param>
+		public Setting(IEnumerable<string> names, TryParseDelegate<T> parser = default)
+			: this(names, parser, true) { }
+		private Setting(IEnumerable<string> names, TryParseDelegate<T> parser, bool targetsSelf)
 		{
 			if (names == null || !names.Any())
 			{
@@ -95,16 +126,29 @@ namespace AdvorangesSettingParser
 			Names = names.ToImmutableArray();
 			MainName = Names.First();
 			IsHelp = Names.Any(x => x.CaseInsEquals("help") || x.CaseInsEquals("h"));
-			_Setter = setter ?? throw new ArgumentException("Invalid setter supplied.");
 			_Parser = parser ?? GetPrimitiveParser();
+
+			if (targetsSelf)
+			{
+				var sb = new StrongBox<T>();
+				_Getter = () => sb.Value;
+				_Setter = x => sb.Value = x;
+			}
 		}
 
 		/// <inheritdoc />
 		public void SetDefault()
-		{
-			_Setter(DefaultValue);
-			CurrentValue = DefaultValue;
-		}
+			=> PrivateSet(DefaultValueFactory());
+		/// <inheritdoc />
+		public void Set(T value)
+			=> PrivateSet(value);
+		/// <summary>
+		/// If a constructor is used which provides full getter capabilities, this will return the direct object.
+		/// Otherwise this will return a value which is only updated when the value is changed from within this class.
+		/// </summary>
+		/// <returns></returns>
+		public T GetValue()
+			=> _Getter == null ? _LastSetValue : _Getter();
 		/// <inheritdoc />
 		public bool TrySetValue(string value, out string response)
 		{
@@ -131,11 +175,9 @@ namespace AdvorangesSettingParser
 
 			try
 			{
-				_Setter(result);
-				CurrentValue = result;
+				PrivateSet(result);
 			}
-			//Catch all because who knows what exceptions will happen, and it's user input
-			catch (Exception e)
+			catch (ArgumentException e)
 			{
 				response = e.Message;
 				return false;
@@ -189,9 +231,23 @@ namespace AdvorangesSettingParser
 					throw new ArgumentException($"Unable to find a primitive converter for the supplied type {typeof(T).Name}.");
 			}
 		}
-
-		///ISetting
-		object ISetting.CurrentValue => CurrentValue;
-		object ISetting.DefaultValue => DefaultValue;
+		/// <summary>
+		/// Validates the value then sets if valid.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		private void PrivateSet(T value)
+		{
+			var valid = Validation(value);
+			if (!valid)
+			{
+				throw new ArgumentException($"Validation failed for {MainName}.");
+			}
+			if (_Getter == null)
+			{
+				_LastSetValue = value;
+			}
+			_Setter(value);
+		}
 	}
 }

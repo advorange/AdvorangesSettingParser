@@ -8,32 +8,27 @@ namespace AdvorangesSettingParser
 	public interface ISettingParser : IBasicSettingParser
 	{
 		/// <summary>
-		/// Returns true if every setting has been set or is optional.
-		/// </summary>
-		/// <returns></returns>
-		bool AllSet { get; }
-		/// <summary>
 		/// Valid prefixes for a setting.
 		/// </summary>
 		IEnumerable<string> Prefixes { get; }
 
 		/// <summary>
-		/// Gets the help information associated with this setting name.
+		/// Returns the settings.
 		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		string GetHelp(string name);
+		/// <returns>All of the settings this parser holds.</returns>
+		IEnumerable<ISetting> GetSettings();
 		/// <summary>
-		/// Returns a string asking for unset settings.
+		/// Returns a matching setting.
 		/// </summary>
-		/// <returns></returns>
-		string GetNeededSettings();
-		/// <summary>
-		/// Gets a setting with the supplied name. The setting must start with a prefix.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="state"></param>
-		/// <returns></returns>
+		/// <param name="name">The setting to get.</param>
+		/// <param name="state">How required the prefix is.</param>
+		/// <returns>The setting with either the specified name or alias.</returns>
 		ISetting GetSetting(string name, PrefixState state);
+		/// <summary>
+		/// Returns information either about the settings in general, or the specified setting.
+		/// </summary>
+		/// <param name="name">The setting to target. Can be null if wanting to list out every setting.</param>
+		/// <returns>Help information about either the setting or all settings.</returns>
+		string GetHelp(string name);
 	}
 }
