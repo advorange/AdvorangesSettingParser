@@ -13,7 +13,7 @@ namespace AdvorangesSettingParser
 	/// A generic class for a setting, specifying what the setting type is.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class Setting<T> : ICompleteSetting<T>
+	public class Setting<T> : ICompleteSetting<T>, ICompleteSetting
 	{
 		/// <inheritdoc />
 		public string Description { get; set; }
@@ -55,9 +55,13 @@ namespace AdvorangesSettingParser
 		public IEnumerable<string> Names { get; }
 		/// <inheritdoc />
 		public string MainName { get; }
-		/// <inheritdoc />
+		/// <summary>
+		/// Validates the passed in value.
+		/// </summary>
 		public Func<T, bool> Validation { get; set; } = x => true;
-		/// <inheritdoc />
+		/// <summary>
+		/// Generates a new default value.
+		/// </summary>
 		public Func<T> DefaultValueFactory
 		{
 			get => _DefaultValueFactory;
@@ -68,13 +72,17 @@ namespace AdvorangesSettingParser
 				SetDefault();
 			}
 		}
+		/// <summary>
+		/// Updates the current value.
+		/// </summary>
+		public Func<T, T> UpdateValueFactory { get; set; } = x => x;
 
 		private readonly TryParseDelegate<T> _Parser;
 		private readonly Action<T> _Setter;
 		private readonly Func<T> _Getter;
 		//Only used when getter is null, this caches changes from inside this class
 		private T _LastSetValue;
-		private Func<T> _DefaultValueFactory;
+		private Func<T> _DefaultValueFactory = () => default(T);
 		private bool _IsFlag;
 
 		/// <summary>
@@ -139,6 +147,8 @@ namespace AdvorangesSettingParser
 		/// <inheritdoc />
 		public void SetDefault()
 			=> PrivateSet(DefaultValueFactory());
+		public void Update()
+			=> PrivateSet(UpdateValueFactory(_Getter()))
 		/// <inheritdoc />
 		public void Set(T value)
 			=> PrivateSet(value);
@@ -249,5 +259,9 @@ namespace AdvorangesSettingParser
 			}
 			_Setter(value);
 		}
+
+		//ICompleteSetting
+		object IDirectGetter.GetValue() => GetValue();
+		void IDirectSetter.Set(object value) => _Setter((T)value);
 	}
 }
