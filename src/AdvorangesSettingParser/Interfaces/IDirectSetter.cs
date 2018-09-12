@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AdvorangesSettingParser
+﻿namespace AdvorangesSettingParser
 {
 	/// <summary>
 	/// Allows directly setting the value of a setting.
@@ -8,10 +6,6 @@ namespace AdvorangesSettingParser
 	/// <typeparam name="T"></typeparam>
 	public interface IDirectSetter<T>
 	{
-		/// <summary>
-		/// Sets the value back to its default value. This still validates.
-		/// </summary>
-		void SetDefault();
 		/// <summary>
 		/// Sets the setting directly. This still validates.
 		/// </summary>
@@ -22,13 +16,8 @@ namespace AdvorangesSettingParser
 	/// <summary>
 	/// Allows directly setting the value of a setting.
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
 	public interface IDirectSetter
 	{
-		/// <summary>
-		/// Sets the value back to its default value. This still validates.
-		/// </summary>
-		void SetDefault();
 		/// <summary>
 		/// Sets the setting directly. This still validates.
 		/// </summary>

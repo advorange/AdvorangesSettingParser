@@ -11,5 +11,12 @@ namespace AdvorangesSettingParser.Tests
 		public bool FlagValue2 { get; set; }
 		public ulong UlongValue { get; set; }
 		public DateTime DateTimeValue { get; set; }
+
+		public bool BoolFieldValue;
+	}
+
+	internal struct TestStruct
+	{
+		public bool BoolValue { get; set; }
 	}
 }

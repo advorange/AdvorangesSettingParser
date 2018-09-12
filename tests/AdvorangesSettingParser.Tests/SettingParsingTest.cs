@@ -17,17 +17,16 @@ namespace AdvorangesSettingParser.Tests
 			TestClass = new TestClass();
 			SettingParser = new SettingParser
 			{
-				new Setting<string>(new[] { nameof(TestClass.StringValue), }, x => TestClass.StringValue = x),
-				new Setting<int>(new[] { nameof(TestClass.IntValue), }, x => TestClass.IntValue = x),
-				new Setting<bool>(new[] { nameof(TestClass.BoolValue), }, x => TestClass.BoolValue = x),
-				new Setting<bool>(new[] { nameof(TestClass.FlagValue), }, x => TestClass.FlagValue = x) { IsFlag = true, },
-				new Setting<bool>(new[] { nameof(TestClass.FlagValue2), }, x => TestClass.FlagValue2 = x) { IsFlag = true, },
-				new Setting<ulong>(new[] { nameof(TestClass.UlongValue), }, x => TestClass.UlongValue = x),
-				new Setting<DateTime>(new[] { nameof(TestClass.DateTimeValue), }, x => TestClass.DateTimeValue = x, parser: ConvertDatetime),
+				new Setting<string>(() => TestClass.StringValue),
+				new Setting<int>(() => TestClass.IntValue),
+				new Setting<bool>(() => TestClass.BoolValue),
+				new Setting<bool>(() => TestClass.FlagValue) { IsFlag = true, },
+				new Setting<bool>(() => TestClass.FlagValue2) { IsFlag = true, },
+				new Setting<ulong>(() => TestClass.UlongValue),
+				new Setting<DateTime>(() => TestClass.DateTimeValue, parser: DateTime.TryParse),
 			};
 			Prefix = SettingParser.Prefixes.First();
 		}
-		private (bool Valid, DateTime value) ConvertDatetime(string input) => (DateTime.TryParse(input, out var result), result);
 
 		[TestMethod]
 		public void BasicParsing_Test()
