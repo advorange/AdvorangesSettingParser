@@ -16,7 +16,7 @@ namespace AdvorangesSettingParser.Tests
 		public void GetterSetterProperty_Test()
 		{
 			var property = new TestClass { BoolValue = false, };
-			var propertySetting = new Setting<bool>(Names, x => property.BoolValue = x, () => property.BoolValue);
+			var propertySetting = new Setting<bool>(x => property.BoolValue = x, () => property.BoolValue, Names);
 			Assert.AreEqual(false, property.BoolValue);
 			Assert.AreEqual(false, propertySetting.GetValue());
 			propertySetting.Set(true);
@@ -27,7 +27,7 @@ namespace AdvorangesSettingParser.Tests
 		public void GetterSetterVariable_Test()
 		{
 			var variable = false;
-			var variableSetting = new Setting<bool>(Names, x => variable = x, () => variable);
+			var variableSetting = new Setting<bool>(x => variable = x, () => variable, Names);
 			Assert.AreEqual(false, variable);
 			Assert.AreEqual(false, variableSetting.GetValue());
 			variableSetting.Set(true);
@@ -38,7 +38,7 @@ namespace AdvorangesSettingParser.Tests
 		public void StrongBox_Test()
 		{
 			var variable = new StrongBox<bool>(false);
-			var strongBoxSetting = new Setting<bool>(Names, variable);
+			var strongBoxSetting = new Setting<bool>(variable, Names);
 			Assert.AreEqual(false, variable.Value);
 			Assert.AreEqual(false, strongBoxSetting.GetValue());
 			strongBoxSetting.Set(true);

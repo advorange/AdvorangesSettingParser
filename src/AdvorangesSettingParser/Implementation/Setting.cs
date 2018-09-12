@@ -52,75 +52,88 @@ namespace AdvorangesSettingParser
 		/// <inheritdoc />
 		public bool IsHelp { get; }
 		/// <inheritdoc />
-		public IEnumerable<string> Names => _Names.Concat(Aliases);
+		public IEnumerable<string> Names { get; }
 		/// <inheritdoc />
 		public string MainName { get; }
 		/// <summary>
-		/// Holds the aliases for this command.
+		/// Parses the type from a string.
 		/// </summary>
-		public IEnumerable<string> Aliases { get; set; } = Enumerable.Empty<string>();
+		public TryParseDelegate<TValue> Parser
+		{
+			get => _Parser;
+			set => _Parser = value ?? throw new ArgumentException(nameof(Parser));
+		}
 		/// <summary>
 		/// Validates the passed in value.
 		/// </summary>
-		public Func<TValue, bool> Validation { get; set; } = x => true;
+		public Func<TValue, bool> Validation
+		{
+			get => _Validation;
+			set => _Validation = value ?? throw new ArgumentException(nameof(Validation));
+		}
 		/// <summary>
 		/// Does something with the current value then returns either the modified value or a new value.
 		/// </summary>
-		public Func<TValue, TValue> ResetValueFactory { get; set; } = x => x;
+		public Func<TValue, TValue> ResetValueFactory
+		{
+			get => _ResetValueFactory;
+			set => _ResetValueFactory = value ?? throw new ArgumentException(nameof(ResetValueFactory));
+		}
+		/// <summary>
+		/// Sets the default value for this.
+		/// </summary>
+		public TValue DefaultValue
+		{
+			get => _DefaultValue;
+			set => Set(_DefaultValue = value);
+		}
 
-		/// <summary>
-		/// Converts a string to the correct type.
-		/// </summary>
-		protected TryParseDelegate<TValue> Parser { get; set; }
-		/// <summary>
-		/// Sets the value. This cannot be null.
-		/// </summary>
-		protected Action<TValue> Setter { get; set; }
-		/// <summary>
-		/// Gets the value. This can be null.
-		/// </summary>
-		protected Func<TValue> Getter { get; set; }
-
-		private IEnumerable<string> _Names;
-		private bool _IsFlag;
+		private TryParseDelegate<TValue> _Parser { get; set; }
+		private Func<TValue, bool> _Validation { get; set; } = x => true;
+		private Func<TValue, TValue> _ResetValueFactory { get; set; } = x => x;
+		private Action<TValue> _Setter { get; set; }
+		private Func<TValue> _Getter { get; set; }
+		private TValue _DefaultValue { get; set; }
+		private bool _IsFlag { get;set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="Setting{TValue}"/> with full setter and getter capabilities.
 		/// <paramref name="getter"/> and <paramref name="setter"/> should lead to the same value for best results.
 		/// </summary>
-		/// <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
 		/// <param name="setter">The setter to use for this setting.</param>
 		/// <param name="getter">The getter to use for this setting.</param>
+		/// <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
 		/// <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type.</param>
-		public Setting(IEnumerable<string> names, Action<TValue> setter, Func<TValue> getter, TryParseDelegate<TValue> parser = default)
+		public Setting(Action<TValue> setter, Func<TValue> getter, IEnumerable<string> names, TryParseDelegate<TValue> parser = default)
 			: this(names, parser, false)
 		{
-			Getter = getter ?? throw new ArgumentException(nameof(getter));
-			Setter = setter ?? throw new ArgumentException(nameof(setter));
+			_Getter = getter ?? throw new ArgumentException(nameof(getter));
+			_Setter = setter ?? throw new ArgumentException(nameof(setter));
 		}
 		/// <summary>
 		/// Creates an instance of <see cref="Setting{TValue}"/> with full setter and getter capabilities targetting the supplied value.
+		/// The selector's targeted value will be the main name.
 		/// </summary>
 		/// <param name="selector">The targeted value. This can be any property/field local/instance/global/static in a class/struct.</param>
 		/// <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type.</param>
 		public Setting(Expression<Func<TValue>> selector, TryParseDelegate<TValue> parser = default)
-			: this(new[] { GetMemberExpression(selector).Member.Name }, selector, parser) { }
+			: this(selector, new[] { GetMemberExpression(selector).Member.Name }, parser) { }
 		/// <summary>
 		/// Creates an instance of <see cref="Setting{TValue}"/> with full setter and getter capabilities targetting the supplied value.
 		/// </summary>
 		/// <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
 		/// <param name="selector">The targeted value. This can be any property/field local/instance/global/static in a class/struct.</param>
 		/// <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type.</param>
-		public Setting(IEnumerable<string> names, Expression<Func<TValue>> selector, TryParseDelegate<TValue> parser = default)
-			: this(names, GenerateSetter(selector), selector.Compile(), parser) { }
+		public Setting(Expression<Func<TValue>> selector, IEnumerable<string> names, TryParseDelegate<TValue> parser = default)
+			: this(GenerateSetter(selector), selector.Compile(), names, parser) { }
 		/// <summary>
 		/// Creates an instance of <see cref="Setting{TValue}"/> with full setter and getter capabilities targetting the strongbox.
 		/// </summary>
 		/// <param name="names"></param>
 		/// <param name="strongBox"></param>
 		/// <param name="parser"></param>
-		public Setting(IEnumerable<string> names, StrongBox<TValue> strongBox, TryParseDelegate<TValue> parser = default)
-			: this(names, () => strongBox.Value, parser) { }
+		public Setting(StrongBox<TValue> strongBox, IEnumerable<string> names, TryParseDelegate<TValue> parser = default)
+			: this(() => strongBox.Value, names, parser) { }
 		/// <summary>
 		/// Creates an instance of <see cref="Setting{TValue}"/> with setter and getter capabilities on itself.
 		/// This is generally not useful and defeats the purpose of this class which is modifying external values.
@@ -142,22 +155,22 @@ namespace AdvorangesSettingParser
 				throw new ArgumentException("Must supply at least one name.");
 			}
 
-			_Names = names.ToImmutableArray();
+			Names = names.ToImmutableArray();
 			MainName = names.First();
 			IsHelp = names.Any(x => x.CaseInsEquals("help") || x.CaseInsEquals("h"));
-			Parser = parser ?? GetPrimitiveParser();
+			_Parser = parser ?? GetPrimitiveParser();
 
 			if (targetsSelf)
 			{
 				var sb = new StrongBox<TValue>();
-				Getter = () => sb.Value;
-				Setter = x => sb.Value = x;
+				_Getter = () => sb.Value;
+				_Setter = x => sb.Value = x;
 			}
 		}
 
 		/// <inheritdoc />
 		public void Reset()
-			=> PrivateSet(ResetValueFactory(Getter()));
+			=> PrivateSet(ResetValueFactory(_Getter()));
 		/// <inheritdoc />
 		public void Set(TValue value)
 			=> PrivateSet(value);
@@ -167,7 +180,7 @@ namespace AdvorangesSettingParser
 		/// </summary>
 		/// <returns></returns>
 		public TValue GetValue()
-			=> Getter();
+			=> _Getter();
 		/// <inheritdoc />
 		public bool TrySetValue(string value, out string response)
 		{
@@ -178,7 +191,7 @@ namespace AdvorangesSettingParser
 			}
 			else
 			{
-				if (!Parser(value, out var converted))
+				if (!_Parser(value, out var converted))
 				{
 					response = $"Unable to convert '{value}' to type {typeof(TValue).Name}.";
 					return false;
@@ -266,7 +279,7 @@ namespace AdvorangesSettingParser
 			{
 				throw new ArgumentException($"Validation failed for {MainName}.");
 			}
-			Setter(value);
+			_Setter(value);
 			HasBeenSet = true;
 		}
 		private static MemberExpression GetMemberExpression(LambdaExpression expression)
@@ -288,6 +301,6 @@ namespace AdvorangesSettingParser
 
 		//ICompleteSetting
 		object IDirectGetter.GetValue() => GetValue();
-		void IDirectSetter.Set(object value) => Setter((TValue)value);
+		void IDirectSetter.Set(object value) => _Setter((TValue)value);
 	}
 }
