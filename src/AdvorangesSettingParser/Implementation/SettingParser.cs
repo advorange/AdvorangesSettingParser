@@ -60,7 +60,7 @@ namespace AdvorangesSettingParser
 		{
 			if (addHelp)
 			{
-				Add(new Setting<string>(x => { }, () => null, new[] { "Help", "h" })
+				Add(new Setting<string>(Ref<string>.Nothing, new[] { "Help", "h" })
 				{
 					Description = "Gives you help. Can't fix your life.",
 					IsOptional = true,
