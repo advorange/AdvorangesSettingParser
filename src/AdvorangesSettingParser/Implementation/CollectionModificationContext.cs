@@ -18,11 +18,10 @@ namespace AdvorangesSettingParser
 				{
 					case CMAction.Toggle:
 						return "toggled";
-					case CMAction.AddAlways:
+					case CMAction.Add:
 					case CMAction.AddIfMissing:
 						return "added";
-					case CMAction.RemoveAlways:
-					case CMAction.RemoveIfExists:
+					case CMAction.Remove:
 						return "removed";
 					default:
 						throw new ArgumentException($"Unable to convert to string.", nameof(Action));
@@ -33,6 +32,11 @@ namespace AdvorangesSettingParser
 		/// How to modify the targeted value.
 		/// </summary>
 		public CMAction Action { get; set; }
+		/// <summary>
+		/// Limits how many items can be removed when finding existing matching values.
+		/// </summary>
+		/// <value></value>
+		public int MaxRemovalCount { get; set; } = int.MaxValue;
 	}
 
 	/// <summary>
@@ -47,18 +51,14 @@ namespace AdvorangesSettingParser
 		/// <summary>
 		/// Add no matter what.
 		/// </summary>
-		AddAlways,
+		Add,
 		/// <summary>
 		/// Will only return success if missing then added.
 		/// </summary>
 		AddIfMissing,
 		/// <summary>
-		/// Remove no matter what.
+		/// Removes any matching values.
 		/// </summary>
-		RemoveAlways,
-		/// <summary>
-		/// Will only return success if existing then removed.
-		/// </summary>
-		RemoveIfExists,
+		Remove,
 	}
 }

@@ -129,19 +129,5 @@ namespace AdvorangesSettingParser.Tests
 		{
 			var exceptionSetting = new Setting<bool>(() => InstanceValue ? InstanceValue : false);
 		}
-		[TestMethod]
-		[ExpectedException(typeof(ArgumentException))]
-		public void ReadOnlyField_Test()
-		{
-			var readonlyField = new TestClass();
-			var readonlyFieldSetting = new Setting<bool>(() => readonlyField.ReadOnlyFieldValue);
-		}
-		[TestMethod]
-		[ExpectedException(typeof(ArgumentException))]
-		public void ReadOnlyProperty_Test()
-		{
-			var readonlyProperty = new TestClass();
-			var readonlyPropertySetting = new Setting<bool>(() => readonlyProperty.ReadOnlyPropertyValue);
-		}
 	}
 }

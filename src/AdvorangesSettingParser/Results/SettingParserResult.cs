@@ -11,13 +11,13 @@ namespace AdvorangesSettingParser
 	public class SettingParserResult : Result, ISettingParserResult
 	{
 		/// <inheritdoc />
-		public IEnumerable<string> UnusedParts { get; }
+		public IEnumerable<IResult> UnusedParts { get; }
 		/// <inheritdoc />
-		public IEnumerable<string> Successes { get; }
+		public IEnumerable<IResult> Successes { get; }
 		/// <inheritdoc />
-		public IEnumerable<string> Errors { get; }
+		public IEnumerable<IResult> Errors { get; }
 		/// <inheritdoc />
-		public IEnumerable<string> Help { get; }
+		public IEnumerable<IResult> Help { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="SettingParserResult"/>.
@@ -26,29 +26,31 @@ namespace AdvorangesSettingParser
 		/// <param name="successes"></param>
 		/// <param name="errors"></param>
 		/// <param name="help"></param>
-		public SettingParserResult(IEnumerable<string> unusedParts, IEnumerable<string> successes, IEnumerable<string> errors, IEnumerable<string> help)
+		public SettingParserResult(IEnumerable<IResult> unusedParts, IEnumerable<IResult> successes, IEnumerable<IResult> errors, IEnumerable<IResult> help)
 			: base(!unusedParts.Any() && !errors.Any(), GenerateResponse(unusedParts, successes, errors, help))
 		{
-			UnusedParts = (unusedParts ?? Enumerable.Empty<string>()).Where(x => x != null).ToImmutableArray();
-			Successes = (successes ?? Enumerable.Empty<string>()).Where(x => x != null).ToImmutableArray();
-			Errors = (errors ?? Enumerable.Empty<string>()).Where(x => x != null).ToImmutableArray();
-			Help = (help ?? Enumerable.Empty<string>()).Where(x => x != null).ToImmutableArray();
+			UnusedParts = MakeImmutable(unusedParts);
+			Successes = MakeImmutable(successes);
+			Errors = MakeImmutable(errors);
+			Help = MakeImmutable(help);
 		}
 
-		private static string GenerateResponse(IEnumerable<string> unusedParts, IEnumerable<string> successes, IEnumerable<string> errors, IEnumerable<string> help)
+		private static ImmutableArray<IResult> MakeImmutable(IEnumerable<IResult> source)
+			=> (source ?? Enumerable.Empty<IResult>()).Where(x => x != null).ToImmutableArray();
+		private static string GenerateResponse(IEnumerable<IResult> unusedParts, IEnumerable<IResult> successes, IEnumerable<IResult> errors, IEnumerable<IResult> help)
 		{
 			var responses = new List<string>();
 			if (help.Any())
 			{
-				responses.Add($"HELP:\n{string.Join("\n\t", help)}");
+				responses.Add($"Help:\n{string.Join("\n\t", help)}");
 			}
 			if (successes.Any())
 			{
-				responses.Add($"SUCCESSES:\n{string.Join("\n\t", successes)}");
+				responses.Add($"Successes:\n{string.Join("\n\t", successes)}");
 			}
 			if (errors.Any())
 			{
-				responses.Add($"The following errors occurred:\n{string.Join("\n\t", errors)}");
+				responses.Add($"Errors:\n{string.Join("\n\t", errors)}");
 			}
 			if (unusedParts.Any())
 			{

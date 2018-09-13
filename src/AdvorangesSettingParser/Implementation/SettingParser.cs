@@ -175,17 +175,17 @@ namespace AdvorangesSettingParser
 		/// <inheritdoc />
 		public ISettingParserResult Parse(string[] input)
 		{
-			var unusedParts = new List<string>();
-			var successes = new List<string>();
-			var errors = new List<string>();
-			var help = new List<string>();
+			var unusedParts = new List<IResult>();
+			var successes = new List<IResult>();
+			var errors = new List<IResult>();
+			var help = new List<IResult>();
 			for (int i = 0; i < input.Length; ++i)
 			{
 				var part = input[i];
 				//No setting was gotten, so just skip this part
 				if (!(GetSetting(part, PrefixState.Required) is IBasicSetting setting))
 				{
-					unusedParts.Add(part);
+					unusedParts.Add(Result.FromError(part));
 					continue;
 				}
 
@@ -210,21 +210,21 @@ namespace AdvorangesSettingParser
 				//Otherwise this part is unused
 				else
 				{
-					unusedParts.Add(part);
+					unusedParts.Add(Result.FromError(part));
 					continue;
 				}
 
 				if (setting.IsHelp)
 				{
-					help.Add(GetHelp(value));
+					help.Add(Result.FromSuccess(GetHelp(value)));
 				}
 				else if (setting.TrySetValue(value, out var response))
 				{
-					successes.Add(response.ToString());
+					successes.Add(response);
 				}
 				else
 				{
-					errors.Add(response.ToString());
+					errors.Add(response);
 				}
 			}
 			return new SettingParserResult(unusedParts, successes, errors, help);

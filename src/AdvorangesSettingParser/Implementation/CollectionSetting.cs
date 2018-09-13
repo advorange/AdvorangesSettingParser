@@ -72,7 +72,8 @@ namespace AdvorangesSettingParser
 			HasBeenSet = true;
 		}
 		/// <summary>
-		/// Attempts to modify the collection.
+		/// Attempts to modify the collection. Returns true if the collection was modified successfully.
+		/// Returns false if the collection already had the value added or removed depending on what action was supplied.
 		/// </summary>
 		/// <param name="add"></param>
 		/// <param name="value"></param>
@@ -84,37 +85,27 @@ namespace AdvorangesSettingParser
 			}
 
 			var source = GetValue();
-			var contains = source.Contains(value, EqualityComparer);
 			switch (context.Action)
 			{
 				case CMAction.Toggle:
-					if (contains)
-					{
-						RemoveAll(source, value);
-					}
-					else
+					var rCount = RemoveAll(source, value, context.MaxRemovalCount);
+					if (rCount <= 0) //Only add if nothing was removed
 					{
 						source.Add(value);
 					}
 					return true;
-				case CMAction.AddAlways:
+				case CMAction.Add:
 					source.Add(value);
 					return true;
 				case CMAction.AddIfMissing:
-					if (!contains)
+					var contains = source.Contains(value, EqualityComparer);
+					if (!contains) //Only add if not contained in collection
 					{
 						source.Add(value);
 					}
 					return !contains;
-				case CMAction.RemoveAlways:
-					RemoveAll(source, value);
-					return true;
-				case CMAction.RemoveIfExists:
-					if (contains)
-					{
-						RemoveAll(source, value);
-					}
-					return contains;
+				case CMAction.Remove:
+					return RemoveAll(source, value, context.MaxRemovalCount) > 0; //Failure if removed nothing
 				default:
 					throw new ArgumentException("Invalid action supplied.", nameof(context));
 			}
@@ -131,7 +122,18 @@ namespace AdvorangesSettingParser
 				response = SettingContextResult.FromSuccess(this, typeof(CollectionModificationContext), context?.GetType(), text);
 				return false;
 			}
-			if (!TryGetCMAction(mod, value, out value))
+			return TrySetValue(value, mod, out response);
+		}
+		/// <summary>
+		/// Invokes TrySetValue with the correct context type.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="context"></param>
+		/// <param name="response"></param>
+		/// <returns></returns>
+		public bool TrySetValue(string value, CollectionModificationContext context, out IResult response)
+		{
+			if (!TryGetCMAction(context, value, out value))
 			{
 				response = SettingValueResult.FromError(this, typeof(T), value, "Invalid arg count.");
 				return false;
@@ -141,16 +143,16 @@ namespace AdvorangesSettingParser
 				return false;
 			}
 
-			var m = ModifyCollection(mod, result);
+			var m = ModifyCollection(context, result);
 			response = m
-				? SettingValueResult.FromSuccess(this, typeof(T), result, $"Successfully {mod.ActionString}.")
-				: SettingValueResult.FromError(this, typeof(T), result, $"Already {mod.ActionString}.");
+				? SettingValueResult.FromSuccess(this, typeof(T), result, $"Successfully {context.ActionString}.")
+				: SettingValueResult.FromError(this, typeof(T), result, $"Already {context.ActionString}.");
 			return m;
 		}
 		private bool TryGetCMAction(CollectionModificationContext context, string value, out string newString)
 		{
 			var split = value.Split(new[] { ' ' }, 2);
-			var names = Enum.GetNames(typeof(CMAction));
+			var names = Enum.GetNames(typeof(CMAction)); //Do not allow numbers being parsed as the enum in case someone wants to add numbers to a list
 			if (split.Length == 1)
 			{
 				newString = value;
@@ -167,16 +169,23 @@ namespace AdvorangesSettingParser
 			newString = value;
 			return false;
 		}
-		private void RemoveAll(ICollection<T> source, T value)
+		private int RemoveAll(ICollection<T> source, T value, int limit)
 		{
-			//New list cause the source will change
-			foreach (var sourceValue in source.ToList())
+			var rCount = 0;
+			for (int i = source.Count - 1; i >= 0; --i)
 			{
+				var sourceValue = source.ElementAt(i);
 				if (EqualityComparer.Equals(sourceValue, value))
 				{
 					source.Remove(sourceValue);
+					++rCount;
+				}
+				if (rCount >= limit)
+				{
+					break;
 				}
 			}
+			return rCount;
 		}
 	}
 }

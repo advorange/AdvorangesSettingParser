@@ -16,9 +16,6 @@ namespace AdvorangesSettingParser.Tests
 
 		public bool BoolFieldValue;
 
-		public readonly bool ReadOnlyFieldValue;
-		public bool ReadOnlyPropertyValue { get; }
-
 		public IEnumerable<string> EnumerableStrings { get; } = Enumerable.Empty<string>();
 		public ICollection<string> CollectionStrings { get; } = new List<string>();
 		public IList<string> ListStrings { get; } = new List<string>();

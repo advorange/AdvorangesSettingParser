@@ -10,18 +10,18 @@ namespace AdvorangesSettingParser
 		/// <summary>
 		/// Parts that were not used to set something.
 		/// </summary>
-		IEnumerable<string> UnusedParts { get; }
+		IEnumerable<IResult> UnusedParts { get; }
 		/// <summary>
 		/// All successfully set settings.
 		/// </summary>
-		IEnumerable<string> Successes { get; }
+		IEnumerable<IResult> Successes { get; }
 		/// <summary>
 		/// Any errors which occurred when setting something.
 		/// </summary>
-		IEnumerable<string> Errors { get; }
+		IEnumerable<IResult> Errors { get; }
 		/// <summary>
 		/// Result gotten via the help setting.
 		/// </summary>
-		IEnumerable<string> Help { get; }
+		IEnumerable<IResult> Help { get; }
 	}
 }
