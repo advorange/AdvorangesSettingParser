@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -7,7 +8,7 @@ namespace AdvorangesSettingParser
 	/// <summary>
 	/// Holds the results of parsing settings.
 	/// </summary>
-	public struct SettingParserResults : ISettingParserResults
+	public class SettingParserResult : Result, ISettingParserResult
 	{
 		/// <inheritdoc />
 		public IEnumerable<string> UnusedParts { get; }
@@ -17,46 +18,43 @@ namespace AdvorangesSettingParser
 		public IEnumerable<string> Errors { get; }
 		/// <inheritdoc />
 		public IEnumerable<string> Help { get; }
-		/// <inheritdoc />
-		public bool IsSuccess { get; }
 
 		/// <summary>
-		/// Creates an instance of <see cref="SettingParserResults"/>.
+		/// Creates an instance of <see cref="SettingParserResult"/>.
 		/// </summary>
 		/// <param name="unusedParts"></param>
 		/// <param name="successes"></param>
 		/// <param name="errors"></param>
 		/// <param name="help"></param>
-		public SettingParserResults(IEnumerable<string> unusedParts, IEnumerable<string> successes, IEnumerable<string> errors, IEnumerable<string> help)
+		public SettingParserResult(IEnumerable<string> unusedParts, IEnumerable<string> successes, IEnumerable<string> errors, IEnumerable<string> help)
+			: base(!unusedParts.Any() && !errors.Any(), GenerateResponse(unusedParts, successes, errors, help))
 		{
 			UnusedParts = (unusedParts ?? Enumerable.Empty<string>()).Where(x => x != null).ToImmutableArray();
 			Successes = (successes ?? Enumerable.Empty<string>()).Where(x => x != null).ToImmutableArray();
 			Errors = (errors ?? Enumerable.Empty<string>()).Where(x => x != null).ToImmutableArray();
 			Help = (help ?? Enumerable.Empty<string>()).Where(x => x != null).ToImmutableArray();
-			IsSuccess = !UnusedParts.Any() && !Errors.Any();
 		}
 
-		/// <inheritdoc />
-		public override string ToString()
+		private static string GenerateResponse(IEnumerable<string> unusedParts, IEnumerable<string> successes, IEnumerable<string> errors, IEnumerable<string> help)
 		{
 			var responses = new List<string>();
-			if (Help.Any())
+			if (help.Any())
 			{
-				responses.Add(string.Join("\n", Help));
+				responses.Add($"HELP:\n{string.Join("\n\t", help)}");
 			}
-			if (Successes.Any())
+			if (successes.Any())
 			{
-				responses.Add(string.Join("\n", Successes));
+				responses.Add($"SUCCESSES:\n{string.Join("\n\t", successes)}");
 			}
-			if (Errors.Any())
+			if (errors.Any())
 			{
-				responses.Add($"The following errors occurred:\n{string.Join("\n\t", Errors)}");
+				responses.Add($"The following errors occurred:\n{string.Join("\n\t", errors)}");
 			}
-			if (UnusedParts.Any())
+			if (unusedParts.Any())
 			{
-				responses.Add($"The following parts were extra; was an argument mistyped? '{string.Join("', '", UnusedParts)}'");
+				responses.Add($"The following parts were extra; was an argument mistyped? '{string.Join("', '", unusedParts)}'");
 			}
-			return string.Join("\n", responses) + "\n";
+			return string.Join("\n\n", responses) + "\n";
 		}
 	}
 }

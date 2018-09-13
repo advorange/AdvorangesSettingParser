@@ -5,7 +5,7 @@ namespace AdvorangesSettingParser
 	/// <summary>
 	/// Results gotten from parsing.
 	/// </summary>
-	public interface ISettingParserResults
+	public interface ISettingParserResult : IResult
 	{
 		/// <summary>
 		/// Parts that were not used to set something.
@@ -23,9 +23,5 @@ namespace AdvorangesSettingParser
 		/// Result gotten via the help setting.
 		/// </summary>
 		IEnumerable<string> Help { get; }
-		/// <summary>
-		/// Returns true if <see cref="UnusedParts"/> and <see cref="Errors"/> are both empty.
-		/// </summary>
-		bool IsSuccess { get; }
 	}
 }

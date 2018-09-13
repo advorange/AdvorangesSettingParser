@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AdvorangesSettingParser.Tests
 {
@@ -13,6 +15,15 @@ namespace AdvorangesSettingParser.Tests
 		public DateTime DateTimeValue { get; set; }
 
 		public bool BoolFieldValue;
+
+		public readonly bool ReadOnlyFieldValue;
+		public bool ReadOnlyPropertyValue { get; }
+
+		public IEnumerable<string> EnumerableStrings { get; } = Enumerable.Empty<string>();
+		public ICollection<string> CollectionStrings { get; } = new List<string>();
+		public IList<string> ListStrings { get; } = new List<string>();
+		public IList<string> FilledListStrings { get; } = new List<string>();
+		public IList<int> ListInts { get; } = new List<int>();
 	}
 
 	internal struct TestStruct

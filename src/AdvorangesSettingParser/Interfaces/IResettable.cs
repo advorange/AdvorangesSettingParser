@@ -8,6 +8,6 @@
 		/// <summary>
 		/// Sets the value back to its default value. This still validates.
 		/// </summary>
-		void Reset();
+		void ResetValue();
 	}
 }

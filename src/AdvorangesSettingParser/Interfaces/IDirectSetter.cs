@@ -10,7 +10,7 @@
 		/// Sets the setting directly. This still validates.
 		/// </summary>
 		/// <param name="value"></param>
-		void Set(T value);
+		void SetValue(T value);
 	}
 
 	/// <summary>
@@ -22,6 +22,6 @@
 		/// Sets the setting directly. This still validates.
 		/// </summary>
 		/// <param name="value"></param>
-		void Set(object value);
+		void SetValue(object value);
 	}
 }

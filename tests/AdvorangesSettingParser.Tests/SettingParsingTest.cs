@@ -15,7 +15,7 @@ namespace AdvorangesSettingParser.Tests
 		public SettingParsingTest()
 		{
 			TestClass = new TestClass();
-			SettingParser = new SettingParser
+			SettingParser = new SettingParser(true)
 			{
 				new Setting<string>(() => TestClass.StringValue),
 				new Setting<int>(() => TestClass.IntValue),

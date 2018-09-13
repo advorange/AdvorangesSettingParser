@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace AdvorangesSettingParser
@@ -20,10 +19,8 @@ namespace AdvorangesSettingParser
 
 		/// <inheritdoc />
 		public string Name { get; }
-		/// <inheritdoc />
-		public Action<T> Setter { get; }
-		/// <inheritdoc />
-		public Func<T> Getter { get; }
+		private Action<T> Setter { get; }
+		private Func<T> Getter { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="Ref{T}"/>.
@@ -45,27 +42,26 @@ namespace AdvorangesSettingParser
 		public Ref(StrongBox<T> strongbox, string name = null)
 			: this(x => strongbox.Value = x, () => strongbox.Value, name) { }
 		/// <summary>
-		/// Creates an instance of <see cref="Ref{T}"/>.
+		/// Creates an instance of <see cref="Ref{T}"/>. The targeted value MUST have both a getter and setter.
 		/// </summary>
 		/// <param name="selector">Allows getting and setting the value plus gives the name.</param>
 		public Ref(Expression<Func<T>> selector)
-			: this(GenerateSetter(selector), selector.Compile(), GetMemberExpression(selector).Member.Name) { }
+			: this(selector.GenerateSetter(), selector.Compile(), selector.GetMemberExpression().Member.Name) { }
 
-		private static MemberExpression GetMemberExpression(LambdaExpression expression)
-			=> expression.Body as MemberExpression ?? throw new ArgumentException($"Supplied expression is not a {nameof(MemberExpression)}.");
-		private static Action<T> GenerateSetter(Expression<Func<T>> selector)
-		{
-			var body = GetMemberExpression(selector);
-			switch (body.Member)
-			{
-				case PropertyInfo property:
-				case FieldInfo field:
-					var valueExp = Expression.Parameter(typeof(T));
-					var assignExp = Expression.Assign(body, valueExp);
-					return Expression.Lambda<Action<T>>(assignExp, valueExp).Compile();
-				default:
-					throw new ArgumentException("Can only target properties and fields.", nameof(selector));
-			}
-		}
+		/// <inheritdoc />
+		public T GetValue() => Getter();
+		/// <inheritdoc />
+		public void SetValue(T value) => Setter(value);
+		/// <summary>
+		/// Converts <see cref="Ref{T}"/> to its held value.
+		/// </summary>
+		/// <param name="instance"></param>
+		public static implicit operator T(Ref<T> instance) => instance.GetValue();
+		/// <summary>
+		/// Converts an expression into <see cref="Ref{T}"/>.
+		/// </summary>
+		/// <param name="selector"></param>
+		/// <remarks>Generally useless because lambda expressions default to the non expression value.</remarks>
+		public static implicit operator Ref<T>(Expression<Func<T>> selector) => new Ref<T>(selector);
 	}
 }

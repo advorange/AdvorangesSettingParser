@@ -13,7 +13,7 @@ namespace AdvorangesSettingParser
 	/// This implementation is case-insensitive.
 	/// </summary>
 	/// <remarks>Reserved setting names: help, h (unless help command is not added)</remarks>
-	public sealed class SettingParser : ISettingParser, ICollection<ISetting>
+	public sealed class SettingParser : ISettingParser<ISetting>, ISettingParser, ICollection<ISetting>
 	{
 		/// <summary>
 		/// The default prefixes used for setting parsing.
@@ -165,15 +165,15 @@ namespace AdvorangesSettingParser
 				});
 				return $"All Settings:{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", values)}";
 			}
-			return GetSetting(name, PrefixState.NotPrefixed) is ISetting setting
+			return GetSetting(name, PrefixState.NotPrefixed) is IBasicSetting setting
 				? setting.Information
 				: $"'{name}' is not a valid setting.";
 		}
 		/// <inheritdoc />
-		public ISettingParserResults Parse(string input)
+		public ISettingParserResult Parse(string input)
 			=> Parse(input.SplitLikeCommandLine());
 		/// <inheritdoc />
-		public ISettingParserResults Parse(string[] input)
+		public ISettingParserResult Parse(string[] input)
 		{
 			var unusedParts = new List<string>();
 			var successes = new List<string>();
@@ -182,21 +182,22 @@ namespace AdvorangesSettingParser
 			for (int i = 0; i < input.Length; ++i)
 			{
 				var part = input[i];
-				string value;
 				//No setting was gotten, so just skip this part
-				if (!(GetSetting(part, PrefixState.Required) is ISetting setting))
+				if (!(GetSetting(part, PrefixState.Required) is IBasicSetting setting))
 				{
 					unusedParts.Add(part);
 					continue;
 				}
 
+				string value;
 				//If it's a flag set its value to true then go to the next part
+				//If it has a getter then check if it's set to toggle it
 				if (setting.IsFlag)
 				{
 					value = setting is IDirectGetter<bool> getter && getter.GetValue() ? bool.FalseString : bool.TrueString;
 				}
 				//If there's one more and it's not a setting use that
-				else if (input.Length - 1 > i && !(GetSetting(input[i + 1], PrefixState.Required) is ISetting throwaway))
+				else if (input.Length - 1 > i && !(GetSetting(input[i + 1], PrefixState.Required) is IBasicSetting throwaway))
 				{
 					value = input[++i]; //Make sure to increment i since the part is being used as a setting
 				}
@@ -219,14 +220,14 @@ namespace AdvorangesSettingParser
 				}
 				else if (setting.TrySetValue(value, out var response))
 				{
-					successes.Add(response);
+					successes.Add(response.ToString());
 				}
 				else
 				{
-					errors.Add(response);
+					errors.Add(response.ToString());
 				}
 			}
-			return new SettingParserResults(unusedParts, successes, errors, help);
+			return new SettingParserResult(unusedParts, successes, errors, help);
 		}
 		/// <inheritdoc />
 		public void Add(ISetting setting)
@@ -269,5 +270,9 @@ namespace AdvorangesSettingParser
 		/// <inheritdoc />
 		IEnumerator IEnumerable.GetEnumerator()
 			=> _SettingMap.Values.GetEnumerator();
+
+		//ISettingParser
+		IEnumerable<IBasicSetting> ISettingParser.GetSettings() => GetSettings();
+		IBasicSetting ISettingParser.GetSetting(string name, PrefixState state) => GetSetting(name, state);
 	}
 }

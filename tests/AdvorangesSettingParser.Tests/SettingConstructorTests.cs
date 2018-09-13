@@ -19,7 +19,7 @@ namespace AdvorangesSettingParser.Tests
 			var propertySetting = new Setting<bool>(new Ref<bool>(x => property.BoolValue = x, () => property.BoolValue, "a"));
 			Assert.AreEqual(false, property.BoolValue);
 			Assert.AreEqual(false, propertySetting.GetValue());
-			propertySetting.Set(true);
+			propertySetting.SetValue(true);
 			Assert.AreEqual(true, property.BoolValue);
 			Assert.AreEqual(true, propertySetting.GetValue());
 			property.BoolValue = false;
@@ -33,7 +33,7 @@ namespace AdvorangesSettingParser.Tests
 			var localSetting = new Setting<bool>(new Ref<bool>(x => local = x, () => local, "a"));
 			Assert.AreEqual(false, local);
 			Assert.AreEqual(false, localSetting.GetValue());
-			localSetting.Set(true);
+			localSetting.SetValue(true);
 			Assert.AreEqual(true, local);
 			Assert.AreEqual(true, localSetting.GetValue());
 			local = false;
@@ -47,7 +47,7 @@ namespace AdvorangesSettingParser.Tests
 			var strongBoxSetting = new Setting<bool>(new Ref<bool>(strongBox, "a"));
 			Assert.AreEqual(false, strongBox.Value);
 			Assert.AreEqual(false, strongBoxSetting.GetValue());
-			strongBoxSetting.Set(true);
+			strongBoxSetting.SetValue(true);
 			Assert.AreEqual(true, strongBox.Value);
 			Assert.AreEqual(true, strongBoxSetting.GetValue());
 			strongBox.Value = false;
@@ -61,7 +61,7 @@ namespace AdvorangesSettingParser.Tests
 			var propertySetting = new Setting<bool>(() => property.BoolValue);
 			Assert.AreEqual(false, property.BoolValue);
 			Assert.AreEqual(false, propertySetting.GetValue());
-			propertySetting.Set(true);
+			propertySetting.SetValue(true);
 			Assert.AreEqual(true, property.BoolValue);
 			Assert.AreEqual(true, propertySetting.GetValue());
 			property.BoolValue = false;
@@ -75,7 +75,7 @@ namespace AdvorangesSettingParser.Tests
 			var propertySetting = new Setting<bool>(() => property.BoolValue);
 			Assert.AreEqual(false, property.BoolValue);
 			Assert.AreEqual(false, propertySetting.GetValue());
-			propertySetting.Set(true);
+			propertySetting.SetValue(true);
 			Assert.AreEqual(true, property.BoolValue);
 			Assert.AreEqual(true, propertySetting.GetValue());
 			property.BoolValue = false;
@@ -89,7 +89,7 @@ namespace AdvorangesSettingParser.Tests
 			var fieldSetting = new Setting<bool>(() => field.BoolFieldValue);
 			Assert.AreEqual(false, field.BoolFieldValue);
 			Assert.AreEqual(false, fieldSetting.GetValue());
-			fieldSetting.Set(true);
+			fieldSetting.SetValue(true);
 			Assert.AreEqual(true, field.BoolFieldValue);
 			Assert.AreEqual(true, fieldSetting.GetValue());
 			field.BoolFieldValue = false;
@@ -103,7 +103,7 @@ namespace AdvorangesSettingParser.Tests
 			var localSetting = new Setting<bool>(() => local);
 			Assert.AreEqual(false, local);
 			Assert.AreEqual(false, localSetting.GetValue());
-			localSetting.Set(true);
+			localSetting.SetValue(true);
 			Assert.AreEqual(true, local);
 			Assert.AreEqual(true, localSetting.GetValue());
 			local = false;
@@ -116,7 +116,7 @@ namespace AdvorangesSettingParser.Tests
 			var instanceSetting = new Setting<bool>(() => InstanceValue);
 			Assert.AreEqual(false, InstanceValue);
 			Assert.AreEqual(false, instanceSetting.GetValue());
-			instanceSetting.Set(true);
+			instanceSetting.SetValue(true);
 			Assert.AreEqual(true, InstanceValue);
 			Assert.AreEqual(true, instanceSetting.GetValue());
 			InstanceValue = false;
@@ -128,6 +128,20 @@ namespace AdvorangesSettingParser.Tests
 		public void ExpressionException_Test()
 		{
 			var exceptionSetting = new Setting<bool>(() => InstanceValue ? InstanceValue : false);
+		}
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentException))]
+		public void ReadOnlyField_Test()
+		{
+			var readonlyField = new TestClass();
+			var readonlyFieldSetting = new Setting<bool>(() => readonlyField.ReadOnlyFieldValue);
+		}
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentException))]
+		public void ReadOnlyProperty_Test()
+		{
+			var readonlyProperty = new TestClass();
+			var readonlyPropertySetting = new Setting<bool>(() => readonlyProperty.ReadOnlyPropertyValue);
 		}
 	}
 }

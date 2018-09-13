@@ -5,30 +5,39 @@ namespace AdvorangesSettingParser
 	/// <summary>
 	/// This interface is for a setting parser which allows showing some additional information about a <see cref="IBasicSettingParser"/>.
 	/// </summary>
-	public interface ISettingParser : IBasicSettingParser
+	/// <typeparam name="T">The type of settings to use.</typeparam>
+	public interface ISettingParser<T> : ISettingParserMetadata, IBasicSettingParser where T : IBasicSetting
 	{
-		/// <summary>
-		/// Valid prefixes for a setting.
-		/// </summary>
-		IEnumerable<string> Prefixes { get; }
-
 		/// <summary>
 		/// Returns the settings.
 		/// </summary>
 		/// <returns>All of the settings this parser holds.</returns>
-		IEnumerable<ISetting> GetSettings();
+		IEnumerable<T> GetSettings();
 		/// <summary>
 		/// Returns a matching setting.
 		/// </summary>
 		/// <param name="name">The setting to get.</param>
 		/// <param name="state">How required the prefix is.</param>
 		/// <returns>The setting with either the specified name or alias.</returns>
-		ISetting GetSetting(string name, PrefixState state);
+		T GetSetting(string name, PrefixState state);
+	}
+
+	/// <summary>
+	/// This interface is for a setting parser which allows showing some additional information about a <see cref="IBasicSettingParser"/>.
+	/// </summary>
+	public interface ISettingParser : ISettingParserMetadata, IBasicSettingParser
+	{
 		/// <summary>
-		/// Returns information either about the settings in general, or the specified setting.
+		/// Returns the settings.
 		/// </summary>
-		/// <param name="name">The setting to target. Can be null if wanting to list out every setting.</param>
-		/// <returns>Help information about either the setting or all settings.</returns>
-		string GetHelp(string name);
+		/// <returns>All of the settings this parser holds.</returns>
+		IEnumerable<IBasicSetting> GetSettings();
+		/// <summary>
+		/// Returns a matching setting.
+		/// </summary>
+		/// <param name="name">The setting to get.</param>
+		/// <param name="state">How required the prefix is.</param>
+		/// <returns>The setting with either the specified name or alias.</returns>
+		IBasicSetting GetSetting(string name, PrefixState state);
 	}
 }
