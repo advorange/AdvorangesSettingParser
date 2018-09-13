@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using AdvorangesUtils;
 
 namespace AdvorangesSettingParser
 {
@@ -149,16 +150,17 @@ namespace AdvorangesSettingParser
 		private bool TryGetCMAction(CollectionModificationContext context, string value, out string newString)
 		{
 			var split = value.Split(new[] { ' ' }, 2);
+			var names = Enum.GetNames(typeof(CMAction));
 			if (split.Length == 1)
 			{
 				newString = value;
 				//Only return success if this only value is NOT CMAction
 				//b/c if someone messes up quotes it would attempt to set this otherwise
-				return !Enum.TryParse<CMAction>(split[0], true, out _);
+				return !names.CaseInsContains(split[0]);
 			}
-			if (Enum.TryParse(split[0], true, out CMAction action))
+			if (names.CaseInsContains(split[0]))
 			{
-				context.Action = action;
+				context.Action = (CMAction)Enum.Parse(typeof(CMAction), split[0], true);
 				newString = split[1];
 				return true;
 			}
