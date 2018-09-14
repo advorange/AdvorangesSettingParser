@@ -29,7 +29,7 @@
 		public static Result FromError(string response)
 			=> new Result(false, response);
 		/// <summary>
-		/// Returns a failed result.
+		/// Returns a successful result.
 		/// </summary>
 		/// <param name="response"></param>
 		/// <returns></returns>

@@ -8,8 +8,8 @@
     <Description>A basic setting parser which may not necessarily be completely safe but is easy to use.</Description>
     <RepositoryType>https://github.com/advorange/AdvorangesSettingParser</RepositoryType>
     <PackageProjectUrl>https://github.com/advorange/AdvorangesSettingParser</PackageProjectUrl>
-    <Version>1.1.1</Version>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <Version>1.1.2</Version>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
     <FileVersion>1.1.1.0</FileVersion>
   </PropertyGroup>
 
@@ -20,7 +20,12 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
+    <DocumentationFile>C:\Users\User\Documents\Visual Studio 2017\Projects\AdvorangesSettingParser\src\AdvorangesSettingParser\AdvorangesSettingParser.xml</DocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="AdvorangesSettingParser.xml" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AdvorangesUtils" Version="1.0.11" />

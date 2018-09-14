@@ -9,6 +9,7 @@ namespace AdvorangesSettingParser.Tests
 		public string StringValue { get; set; }
 		public int IntValue { get; set; }
 		public bool BoolValue { get; set; }
+		public bool PrivateSetBoolValue { get; private set; }
 		public bool FlagValue { get; set; }
 		public bool FlagValue2 { get; set; }
 		public ulong UlongValue { get; set; }

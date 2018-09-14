@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using AdvorangesUtils;
+using Context = AdvorangesSettingParser.CollectionModificationContext;
 
 namespace AdvorangesSettingParser
 {
@@ -61,13 +62,10 @@ namespace AdvorangesSettingParser
 		{
 			var source = GetValue();
 			source.Clear();
-			foreach (var val in value)
+			foreach (var singleValue in value)
 			{
-				if (!Validation(val))
-				{
-					throw new ArgumentException($"Validation failed for {MainName} with supplied value {val}.");
-				}
-				source.Add(val);
+				ThrowIfInvalid(singleValue);
+				source.Add(singleValue);
 			}
 			HasBeenSet = true;
 		}
@@ -75,15 +73,11 @@ namespace AdvorangesSettingParser
 		/// Attempts to modify the collection. Returns true if the collection was modified successfully.
 		/// Returns false if the collection already had the value added or removed depending on what action was supplied.
 		/// </summary>
-		/// <param name="add"></param>
+		/// <param name="context"></param>
 		/// <param name="value"></param>
-		public bool ModifyCollection(CollectionModificationContext context, T value)
+		public bool ModifyCollection(Context context, T value)
 		{
-			if (!Validation(value))
-			{
-				throw new ArgumentException($"Validation failed for {MainName} with supplied value {value}.");
-			}
-
+			ThrowIfInvalid(value);
 			var source = GetValue();
 			switch (context.Action)
 			{
@@ -112,17 +106,16 @@ namespace AdvorangesSettingParser
 		}
 		/// <inheritdoc />
 		public override bool TrySetValue(string value, out IResult response)
-			=> TrySetValue(value, new CollectionModificationContext { Action = CMAction.Toggle }, out response);
+			=> TrySetValue(value, new Context { Action = CMAction.Toggle }, out response);
 		/// <inheritdoc />
 		public override bool TrySetValue(string value, ITrySetValueContext context, out IResult response)
 		{
-			if (!(context is CollectionModificationContext mod))
+			if (!(context is Context modificationContext))
 			{
-				var text = "Invalid context provided.";
-				response = SettingContextResult.FromSuccess(this, typeof(CollectionModificationContext), context?.GetType(), text);
+				response = SettingContextResult.FromError(this, typeof(Context), context?.GetType(), "Invalid context provided.");
 				return false;
 			}
-			return TrySetValue(value, mod, out response);
+			return TrySetValue(value, modificationContext, out response);
 		}
 		/// <summary>
 		/// Invokes TrySetValue with the correct context type.
@@ -131,43 +124,44 @@ namespace AdvorangesSettingParser
 		/// <param name="context"></param>
 		/// <param name="response"></param>
 		/// <returns></returns>
-		public bool TrySetValue(string value, CollectionModificationContext context, out IResult response)
+		public bool TrySetValue(string value, Context context, out IResult response)
 		{
-			if (!TryGetCMAction(context, value, out value))
-			{
-				response = SettingValueResult.FromError(this, typeof(T), value, "Invalid arg count.");
-				return false;
-			}
-			if (!TryConvertValue(value, out var result, out response))
+			if (!TryGetCMAction(context, ref value, out response) || !TryConvertValue(value, out var result, out response))
 			{
 				return false;
 			}
-
 			var m = ModifyCollection(context, result);
 			response = m
-				? SettingValueResult.FromSuccess(this, typeof(T), result, $"Successfully {context.ActionString}.")
-				: SettingValueResult.FromError(this, typeof(T), result, $"Already {context.ActionString}.");
+				? SetValueResult.FromSuccess(this, result, $"Successfully {context.ActionString}.")
+				: SetValueResult.FromError(this, result, $"Already {context.ActionString}.");
 			return m;
 		}
-		private bool TryGetCMAction(CollectionModificationContext context, string value, out string newString)
+		private bool TryGetCMAction(Context context, ref string value, out IResult response)
 		{
 			var split = value.Split(new[] { ' ' }, 2);
-			var names = Enum.GetNames(typeof(CMAction)); //Do not allow numbers being parsed as the enum in case someone wants to add numbers to a list
+			//Do not allow numbers being parsed as the enum in case someone wants to add numbers to a collection
+			var names = Enum.GetNames(typeof(CMAction));
 			if (split.Length == 1)
 			{
-				newString = value;
 				//Only return success if this only value is NOT CMAction
 				//b/c if someone messes up quotes it would attempt to set this otherwise
-				return !names.CaseInsContains(split[0]);
+				var valid = !names.CaseInsContains(split[0]);
+				response = valid
+					? SetValueResult.FromSuccess(this, value, $"Defaulting action to {CMAction.Toggle}.")
+					: SetValueResult.FromError(this, value, "Cannot provide only an action.");
+				return valid;
 			}
 			if (names.CaseInsContains(split[0]))
 			{
 				context.Action = (CMAction)Enum.Parse(typeof(CMAction), split[0], true);
-				newString = split[1];
-				return true;
+				value = split[1];
+				response = SetValueResult.FromSuccess(this, value, $"Set action to {context.Action}.");
 			}
-			newString = value;
-			return false;
+			else
+			{
+				response = SetValueResult.FromSuccess(this, value, $"Defaulting action to {CMAction.Toggle}.");
+			}
+			return true;
 		}
 		private int RemoveAll(ICollection<T> source, T value, int limit)
 		{

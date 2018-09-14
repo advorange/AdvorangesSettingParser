@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace AdvorangesSettingParser
@@ -42,10 +41,7 @@ namespace AdvorangesSettingParser
 		/// <inheritdoc />
 		public override void SetValue(T value)
 		{
-			if (!Validation(value))
-			{
-				throw new ArgumentException($"Validation failed for {MainName} with supplied value {value}.");
-			}
+			ThrowIfInvalid(value);
 			_Ref.SetValue(value);
 			HasBeenSet = true;
 		}
@@ -59,9 +55,8 @@ namespace AdvorangesSettingParser
 			{
 				return false;
 			}
-
 			SetValue(result);
-			response = SettingValueResult.FromSuccess(this, typeof(T), result, "Successfully set.");
+			response = SetValueResult.FromSuccess(this, typeof(T), result, "Successfully set.");
 			return true;
 		}
 

@@ -8,7 +8,7 @@ namespace AdvorangesSettingParser
 	/// Acts as the ref keyword for multiple types other than fields.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public sealed class Ref<T> : IRef<T>
+	public class Ref<T> : IRef<T>
 	{
 		/// <summary>
 		/// Creates a reference to nothing.
@@ -19,21 +19,15 @@ namespace AdvorangesSettingParser
 
 		/// <inheritdoc />
 		public string Name { get; }
-		private Action<T> Setter { get; }
-		private Func<T> Getter { get; }
-
 		/// <summary>
-		/// Creates an instance of <see cref="Ref{T}"/>.
+		/// Sets the value.
 		/// </summary>
-		/// <param name="setter">Sets the value.</param>
-		/// <param name="getter">Gets the value.</param>
-		/// <param name="name">The name of the targeted value.</param>
-		public Ref(Action<T> setter, Func<T> getter, string name = null)
-		{
-			Name = name;
-			Setter = setter;
-			Getter = getter;
-		}
+		protected Action<T> Setter { get; set; }
+		/// <summary>
+		/// Gets the value.
+		/// </summary>
+		protected Func<T> Getter { get; set; }
+
 		/// <summary>
 		/// Creates an instance of <see cref="Ref{T}"/>.
 		/// </summary>
@@ -42,11 +36,27 @@ namespace AdvorangesSettingParser
 		public Ref(StrongBox<T> strongbox, string name = null)
 			: this(x => strongbox.Value = x, () => strongbox.Value, name) { }
 		/// <summary>
-		/// Creates an instance of <see cref="Ref{T}"/>. The targeted value MUST have both a getter and setter.
+		/// Creates an instance of <see cref="Ref{T}"/>. The targeted value MUST have both a getter and setter and must NOT be in a value type.
 		/// </summary>
 		/// <param name="selector">Allows getting and setting the value plus gives the name.</param>
+		/// <remarks>
+		/// This cannot be in a value type because unless the struct is local none of the fields will be set on it correctly.
+		/// This results in a compile time error with <see cref="Action{T}"/> whereas here it's extremely easy to miss and will never throw an exception.
+		/// </remarks>
 		public Ref(Expression<Func<T>> selector)
 			: this(selector.GenerateSetter(), selector.Compile(), selector.GetMemberExpression().Member.Name) { }
+		/// <summary>
+		/// Creates an instance of <see cref="Ref{T}"/>. Do NOT use this if the target is on a struct.
+		/// </summary>
+		/// <param name="setter">Sets the value.</param>
+		/// <param name="getter">Gets the value.</param>
+		/// <param name="name">The name of the targeted value.</param>
+		protected Ref(Action<T> setter, Func<T> getter, string name = null)
+		{
+			Name = name;
+			Setter = setter;
+			Getter = getter;
+		}
 
 		/// <inheritdoc />
 		public T GetValue() => Getter();

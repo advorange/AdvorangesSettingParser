@@ -143,6 +143,7 @@ namespace AdvorangesSettingParser
 		public static Action<T> GenerateSetter<T>(this Expression<Func<T>> selector)
 		{
 			var body = selector.GetMemberExpression();
+			body.Member.DeclaringType.ThrowIfStruct(body.Member.Name);
 			switch (body.Member)
 			{
 				case PropertyInfo property:
@@ -159,6 +160,18 @@ namespace AdvorangesSettingParser
 					}
 				default:
 					throw new ArgumentException("Can only target properties and fields.", body.Member.Name);
+			}
+		}
+		/// <summary>
+		/// Throws if the type is a struct.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="name"></param>
+		public static void ThrowIfStruct(this Type type, string name = null)
+		{
+			if (type.IsValueType)
+			{
+				throw new ArgumentException($"Cannot target values on a struct ({type.Name}).", name ?? "Anonymous");
 			}
 		}
 	}

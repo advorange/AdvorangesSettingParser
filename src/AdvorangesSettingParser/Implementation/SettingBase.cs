@@ -66,7 +66,7 @@ namespace AdvorangesSettingParser
 		/// <summary>
 		/// Validates the passed in value.
 		/// </summary>
-		public Func<TValue, bool> Validation
+		public Func<TValue, IResult> Validation
 		{
 			get => _Validation;
 			set => _Validation = value ?? throw new ArgumentException(nameof(Validation));
@@ -90,7 +90,7 @@ namespace AdvorangesSettingParser
 
 		private bool _IsFlag { get; set; }
 		private TryParseDelegate<TValue> _Parser { get; set; }
-		private Func<TValue, bool> _Validation { get; set; } = x => true;
+		private Func<TValue, IResult> _Validation { get; set; } = x => Result.FromSuccess("Successfully validated");
 		private Func<TSource, TSource> _ResetValueFactory { get; set; } = x => x;
 		private TSource _DefaultValue { get; set; }
 
@@ -125,6 +125,18 @@ namespace AdvorangesSettingParser
 		/// <inheritdoc />
 		public override string ToString() => $"{MainName} ({typeof(TValue).Name})";
 		/// <summary>
+		/// Validates the value and throws if it's invalid.
+		/// </summary>
+		/// <param name="value"></param>
+		protected void ThrowIfInvalid(TValue value)
+		{
+			var validationResult = Validation(value);
+			if (!validationResult.IsSuccess)
+			{
+				throw new ArgumentException(validationResult.ToString(), MainName);
+			}
+		}
+		/// <summary>
 		/// Attempts to convert the value.
 		/// </summary>
 		/// <param name="value"></param>
@@ -135,26 +147,21 @@ namespace AdvorangesSettingParser
 		{
 			result = default;
 			response = default;
-			if (!value.CaseInsEquals("default")) //Let default just pass on through
+			//Let default just pass on through and set the default value
+			//
+			if (!value.CaseInsEquals("default") && !Parser(value, out result))
 			{
-				if (!Parser(value, out var converted))
-				{
-					response = SettingValueResult.FromError(this, typeof(TValue), value, "Unable to convert to type.");
-					return false;
-				}
-				result = converted;
+				response = SetValueResult.FromError(this, value, "Unable to convert.");
+				return false;
 			}
 			if (result == null && CannotBeNull)
 			{
-				response = SettingValueResult.FromError(this, typeof(TValue), value, "Cannot be set to 'NULL'.");
+				response = SetValueResult.FromError(this, value, "Cannot be set to 'NULL'.");
 				return false;
 			}
-			if (!Validation(result))
-			{
-				response = SettingValueResult.FromError(this, typeof(TValue), value, "Validation failed.");
-				return false;
-			}
-			return true;
+
+			response = Validation(result);
+			return response?.IsSuccess ?? true;
 		}
 		/// <summary>
 		/// Distincts the names into a single enumerable.
