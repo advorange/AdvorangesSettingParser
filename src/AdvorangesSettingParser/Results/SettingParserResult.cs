@@ -41,15 +41,15 @@ namespace AdvorangesSettingParser
 			var responses = new List<string>();
 			if (help.Any())
 			{
-				responses.Add($"Help:\n{string.Join("\n\t", help)}");
+				responses.Add($"Help:\n\t{string.Join("\n\t", help)}");
 			}
 			if (successes.Any())
 			{
-				responses.Add($"Successes:\n{string.Join("\n\t", successes)}");
+				responses.Add($"Successes:\n\t{string.Join("\n\t", successes)}");
 			}
 			if (errors.Any())
 			{
-				responses.Add($"Errors:\n{string.Join("\n\t", errors)}");
+				responses.Add($"Errors:\n\t{string.Join("\n\t", errors)}");
 			}
 			if (unusedParts.Any())
 			{

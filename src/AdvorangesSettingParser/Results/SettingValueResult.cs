@@ -71,6 +71,6 @@ namespace AdvorangesSettingParser
 			=> FromSuccess(setting, typeof(T), value, response);
 
 		private static string GenerateResponse(IBasicSetting setting, Type parameterType, object value, string response)
-			=> $"{response ?? throw new ArgumentException(nameof(response))} ({setting.MainName}, {parameterType.Name}, {value})".TrimStart();
+			=> $"{response ?? throw new ArgumentException(nameof(response))} ({setting.MainName}, {value})".TrimStart();
 	}
 }
