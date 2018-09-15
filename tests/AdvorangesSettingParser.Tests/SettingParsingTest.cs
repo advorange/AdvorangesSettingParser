@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using AdvorangesSettingParser;
+using AdvorangesSettingParser.Implementation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdvorangesSettingParser.Tests
@@ -15,7 +16,7 @@ namespace AdvorangesSettingParser.Tests
 		public SettingParsingTest()
 		{
 			TestClass = new TestClass();
-			SettingParser = new SettingParser(true)
+			SettingParser = new SettingParser
 			{
 				new Setting<string>(() => TestClass.StringValue),
 				new Setting<int>(() => TestClass.IntValue),

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using AdvorangesSettingParser.Interfaces;
 
-namespace AdvorangesSettingParser
+namespace AdvorangesSettingParser.Implementation
 {
 	/// <summary>
 	/// Acts as the ref keyword for multiple types other than fields.

@@ -1,4 +1,4 @@
-﻿namespace AdvorangesSettingParser
+﻿namespace AdvorangesSettingParser.Interfaces
 {
 	/// <summary>
 	/// Indicates 

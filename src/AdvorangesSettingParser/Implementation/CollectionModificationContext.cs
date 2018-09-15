@@ -1,6 +1,7 @@
 ﻿using System;
+using AdvorangesSettingParser.Interfaces;
 
-namespace AdvorangesSettingParser
+namespace AdvorangesSettingParser.Implementation
 {
 	/// <summary>
 	/// Used in <see cref="CollectionSetting{T}"/> for determining whether to add or remove.

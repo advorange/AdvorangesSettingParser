@@ -4,7 +4,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using AdvorangesUtils;
+using AdvorangesSettingParser.Implementation;
+using AdvorangesSettingParser.Interfaces;
+using AdvorangesSettingParser.Results;
 
 namespace AdvorangesSettingParser
 {
@@ -18,7 +20,7 @@ namespace AdvorangesSettingParser
 		/// </summary>
 		/// <param name="parser">The parser.</param>
 		/// <returns>A description of what settings still need to be set.</returns>
-		public static string FormatNeededSettings(this ISettingParser parser)
+		public static string FormatNeededSettings<T>(this SettingParserBase<T> parser) where T : ISettingMetadata
 		{
 			var unsetArguments = parser.GetNeededSettings();
 			if (!unsetArguments.Any())
@@ -33,100 +35,36 @@ namespace AdvorangesSettingParser
 			return sb.ToString().Trim() + Environment.NewLine;
 		}
 		/// <summary>
+		/// Returns information either about the settings in general, or the specified setting.
+		/// </summary>
+		/// <param name="parser"></param>
+		/// <param name="name">The setting to target. Can be null if wanting to list out every setting.</param>
+		/// <returns>Help information about either the setting or all settings.</returns>
+		public static IResult GetHelp<T>(this SettingParserBase<T> parser, string name) where T : ISettingMetadata
+		{
+			if (string.IsNullOrWhiteSpace(name))
+			{
+				var values = parser.Select(x => x.Names.Count() < 2 ? x.MainName : $"{x.MainName} ({string.Join(", ", x.Names.Skip(1))})");
+				return Result.FromSuccess($"All Settings:{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", values)}");
+			}
+			return parser.TryGetSetting(name, PrefixState.NotPrefixed, out var setting)
+				? Result.FromSuccess(setting.Information)
+				: Result.FromError($"'{name}' is not a valid setting.");
+		}
+		/// <summary>
 		/// Returns settings which have not been set and are not optional.
 		/// </summary>
 		/// <param name="parser">The parser.</param>
 		/// <returns>The settings which still need to be set.</returns>
-		public static IEnumerable<IBasicSetting> GetNeededSettings(this ISettingParser parser)
-			=> parser.GetSettings().Where(x => !(x.HasBeenSet || x.IsOptional));
+		public static IEnumerable<T> GetNeededSettings<T>(this SettingParserBase<T> parser) where T : ISettingMetadata
+			=> parser.Where(x => !(x.HasBeenSet || x.IsOptional));
 		/// <summary>
 		/// Returns true if every setting is either set or optional.
 		/// </summary>
 		/// <param name="parser">The parser.</param>
 		/// <returns>Whether every setting has been set.</returns>
-		public static bool AreAllSet(this ISettingParser parser)
-			=> parser.GetSettings().All(x => x.HasBeenSet || x.IsOptional);
-		/// <summary>
-		/// Attempts to get a parser for an enum. On failure will return null.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
-		public static TryParseDelegate<T> TryGetEnumParser<T>()
-		{
-			bool EnumTryParse<TEnum>(string s, out TEnum value)
-			{
-				foreach (var name in Enum.GetNames(typeof(TEnum)))
-				{
-					if (name.CaseInsEquals(s))
-					{
-						value = (TEnum)Enum.Parse(typeof(TEnum), s, true);
-						return true;
-					}
-				}
-				value = default;
-				return false;
-			}
-
-			return typeof(T).IsEnum ? new TryParseDelegate<T>(EnumTryParse) : null;
-		}
-		/// <summary>
-		/// Attempts to get a parser for a primitive type. On failure will return null.
-		/// </summary>
-		/// <returns></returns>
-		public static TryParseDelegate<T> TryGetPrimitiveParser<T>()
-		{
-			bool StringTryParse(string s, out string value)
-			{
-				value = s;
-				return true;
-			}
-
-			switch (typeof(T).Name)
-			{
-				//I know this looks bad, but it's the easiest way to do this. It is still type safe anyways.
-				case nameof(SByte):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<sbyte>(sbyte.TryParse);
-				case nameof(Byte):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<byte>(byte.TryParse);
-				case nameof(Int16):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<short>(short.TryParse);
-				case nameof(UInt16):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<ushort>(ushort.TryParse);
-				case nameof(Int32):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<int>(int.TryParse);
-				case nameof(UInt32):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<uint>(uint.TryParse);
-				case nameof(Int64):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<long>(long.TryParse);
-				case nameof(UInt64):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<ulong>(ulong.TryParse);
-				case nameof(Char):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<char>(char.TryParse);
-				case nameof(Single):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<float>(float.TryParse);
-				case nameof(Double):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<double>(double.TryParse);
-				case nameof(Boolean):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<bool>(bool.TryParse);
-				case nameof(Decimal):
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<decimal>(decimal.TryParse);
-				case nameof(String):
-					//Instead of having to do special checks, just use this dumb delegate
-					return (TryParseDelegate<T>)(object)new TryParseDelegate<string>(StringTryParse);
-			}
-			return null;
-		}
-		/// <summary>
-		/// Checks for an enum parser, then a primitive parser, then throws an exception unless one was found.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
-		public static TryParseDelegate<T> GetParser<T>()
-		{
-			return TryGetEnumParser<T>()
-				?? TryGetPrimitiveParser<T>()
-				?? throw new ArgumentException($"Unable to find a primitive converter for the supplied type {typeof(T).Name}.");
-		}
+		public static bool AreAllSet<T>(this SettingParserBase<T> parser) where T : ISettingMetadata
+			=> parser.All(x => x.HasBeenSet || x.IsOptional);
 		/// <summary>
 		/// Gets the member expression from <paramref name="expression"/>.
 		/// </summary>
@@ -134,13 +72,9 @@ namespace AdvorangesSettingParser
 		/// <returns></returns>
 		public static MemberExpression GetMemberExpression(this LambdaExpression expression)
 			=> expression.Body as MemberExpression ?? throw new ArgumentException($"Supplied expression is not a {nameof(MemberExpression)}.");
-		/// <summary>
-		/// Generates a setter method from a getter expression. If there is no setter with will throw.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="selector"></param>
-		/// <returns></returns>
-		public static Action<T> GenerateSetter<T>(this Expression<Func<T>> selector)
+		private static TSetter GenerateSetter<TGetter, TSetter>(
+			this Expression<TGetter> selector,
+			Func<MemberExpression, TSetter> setterGenerator)
 		{
 			var body = selector.GetMemberExpression();
 			body.Member.DeclaringType.ThrowIfStruct(body.Member.Name);
@@ -150,9 +84,7 @@ namespace AdvorangesSettingParser
 				case FieldInfo field:
 					try
 					{
-						var valueExp = Expression.Parameter(typeof(T));
-						var assignExp = Expression.Assign(body, valueExp);
-						return Expression.Lambda<Action<T>>(assignExp, valueExp).Compile();
+						return setterGenerator(body);
 					}
 					catch (ArgumentException e)
 					{
@@ -161,6 +93,39 @@ namespace AdvorangesSettingParser
 				default:
 					throw new ArgumentException("Can only target properties and fields.", body.Member.Name);
 			}
+		}
+		/// <summary>
+		/// Generates a setter method from a getter expression. If there is no setter with will throw.
+		/// </summary>
+		/// <typeparam name="TValue"></typeparam>
+		/// <param name="selector"></param>
+		/// <returns></returns>
+		public static Action<TValue> GenerateSetter<TValue>(this Expression<Func<TValue>> selector)
+		{
+			return selector.GenerateSetter(x =>
+			{
+				var valueExp = Expression.Parameter(typeof(TValue));
+				var assignExp = Expression.Assign(x, valueExp);
+				return Expression.Lambda<Action<TValue>>(assignExp, valueExp).Compile();
+			});
+		}
+		/// <summary>
+		/// Generates a setter method from a getter expression. If there is no setter this will throw.
+		/// </summary>
+		/// <typeparam name="TSource"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
+		/// <param name="selector"></param>
+		/// <returns></returns>
+		public static Action<TSource, TValue> GenerateSetter<TSource, TValue>(this Expression<Func<TSource, TValue>> selector)
+		{
+			return selector.GenerateSetter(x =>
+			{
+				var sourceExpr = Expression.Parameter(typeof(TSource));
+				var valueExp = Expression.Parameter(typeof(TValue));
+				var propertyExp = Expression.PropertyOrField(sourceExpr, x.Member.Name);
+				var assignExp = Expression.Assign(propertyExp, valueExp);
+				return Expression.Lambda<Action<TSource, TValue>>(assignExp, sourceExpr, valueExp).Compile();
+			});
 		}
 		/// <summary>
 		/// Throws if the type is a struct.
@@ -173,6 +138,18 @@ namespace AdvorangesSettingParser
 			{
 				throw new ArgumentException($"Cannot target values on a struct ({type.Name}).", name ?? "Anonymous");
 			}
+		}
+		/// <summary>
+		/// Distincts the names into a single enumerable.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="aliases"></param>
+		/// <returns></returns>
+		public static IEnumerable<string> DistinctNames(string name, IEnumerable<string> aliases)
+		{
+			//Distinct is not 100% guaranteed to be in the passed in order, GroupBy is
+			var concatted = new[] { name }.Concat(aliases ?? Enumerable.Empty<string>());
+			return concatted.Where(x => x != null).GroupBy(x => x).Select(x => x.First());
 		}
 	}
 }

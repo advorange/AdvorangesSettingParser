@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using AdvorangesSettingParser.Interfaces;
+using AdvorangesSettingParser.Results;
 using AdvorangesUtils;
-using Context = AdvorangesSettingParser.CollectionModificationContext;
+using Context = AdvorangesSettingParser.Implementation.CollectionModificationContext;
 
-namespace AdvorangesSettingParser
+namespace AdvorangesSettingParser.Implementation
 {
 	/// <summary>
 	/// A generic class for a setting which is a collection, allowing full getter and modification but no setter capabilities on the target.
@@ -35,7 +37,7 @@ namespace AdvorangesSettingParser
 			Expression<Func<ICollection<T>>> selector,
 			IEnumerable<string> names = default,
 			TryParseDelegate<T> parser = default)
-			: base(DistinctNames(selector.GetMemberExpression().Member.Name, names), parser)
+			: base(SettingParsingUtils.DistinctNames(selector.GetMemberExpression().Member.Name, names), parser)
 		{
 			_Getter = selector?.Compile() ?? throw new ArgumentException(nameof(selector));
 			if (GetValue() == null)
@@ -43,7 +45,6 @@ namespace AdvorangesSettingParser
 				throw new InvalidOperationException($"{MainName} must be initialized before being used in a setting.");
 			}
 			ResetValueFactory = x => { x.Clear(); return x; }; //Clear the list when reset by default
-			MaxParamCount = 2; //For action then variable
 			HasBeenSet = true; //Set to prevent it from stopping things
 		}
 
@@ -105,38 +106,40 @@ namespace AdvorangesSettingParser
 			}
 		}
 		/// <inheritdoc />
-		public override bool TrySetValue(string value, out IResult response)
-			=> TrySetValue(value, new Context { Action = CMAction.Toggle }, out response);
+		public override IResult TrySetValue(string value)
+			=> TrySetValue(value, new Context { Action = CMAction.Toggle });
 		/// <inheritdoc />
-		public override bool TrySetValue(string value, ITrySetValueContext context, out IResult response)
+		public override IResult TrySetValue(string value, ITrySetValueContext context)
 		{
 			if (!(context is Context modificationContext))
 			{
-				response = SettingContextResult.FromError(this, typeof(Context), context?.GetType(), "Invalid context provided.");
-				return false;
+				return SettingContextResult.FromError(this, typeof(Context), context?.GetType(), "Invalid context provided.");
 			}
-			return TrySetValue(value, modificationContext, out response);
+			return TrySetValue(value, modificationContext);
 		}
 		/// <summary>
 		/// Invokes TrySetValue with the correct context type.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <param name="context"></param>
-		/// <param name="response"></param>
 		/// <returns></returns>
-		public bool TrySetValue(string value, Context context, out IResult response)
+		public IResult TrySetValue(string value, Context context)
 		{
-			if (!TryGetCMAction(context, ref value, out response) || !TryConvertValue(value, out var result, out response))
+			var cmActionResult = TryGetCMAction(context, ref value);
+			if (!cmActionResult.IsSuccess)
 			{
-				return false;
+				return cmActionResult;
 			}
-			var m = ModifyCollection(context, result);
-			response = m
+			var convertResult = TryConvertValue(value, out var result);
+			if (!convertResult.IsSuccess)
+			{
+				return convertResult;
+			}
+			return ModifyCollection(context, result)
 				? SetValueResult.FromSuccess(this, result, $"Successfully {context.ActionString}.")
 				: SetValueResult.FromError(this, result, $"Already {context.ActionString}.");
-			return m;
 		}
-		private bool TryGetCMAction(Context context, ref string value, out IResult response)
+		private IResult TryGetCMAction(Context context, ref string value)
 		{
 			var split = value.Split(new[] { ' ' }, 2);
 			//Do not allow numbers being parsed as the enum in case someone wants to add numbers to a collection
@@ -146,22 +149,20 @@ namespace AdvorangesSettingParser
 				//Only return success if this only value is NOT CMAction
 				//b/c if someone messes up quotes it would attempt to set this otherwise
 				var valid = !names.CaseInsContains(split[0]);
-				response = valid
+				return valid
 					? SetValueResult.FromSuccess(this, value, $"Defaulting action to {CMAction.Toggle}.")
 					: SetValueResult.FromError(this, value, "Cannot provide only an action.");
-				return valid;
 			}
 			if (names.CaseInsContains(split[0]))
 			{
 				context.Action = (CMAction)Enum.Parse(typeof(CMAction), split[0], true);
 				value = split[1];
-				response = SetValueResult.FromSuccess(this, value, $"Set action to {context.Action}.");
+				return SetValueResult.FromSuccess(this, value, $"Set action to {context.Action}.");
 			}
 			else
 			{
-				response = SetValueResult.FromSuccess(this, value, $"Defaulting action to {CMAction.Toggle}.");
+				return SetValueResult.FromSuccess(this, value, $"Defaulting action to {CMAction.Toggle}.");
 			}
-			return true;
 		}
 		private int RemoveAll(ICollection<T> source, T value, int limit)
 		{

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AdvorangesSettingParser.Implementation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdvorangesSettingParser.Tests
@@ -15,7 +16,7 @@ namespace AdvorangesSettingParser.Tests
 		public CollectionSettingTests()
 		{
 			TestClass = new TestClass();
-			SettingParser = new SettingParser(true)
+			SettingParser = new SettingParser
 			{
 				new CollectionSetting<string>(() => TestClass.CollectionStrings)
 				{
@@ -53,7 +54,7 @@ namespace AdvorangesSettingParser.Tests
 		{
 			var target = nameof(TestClass.ListInts);
 			var str = Prefix + target;
-			var setting = SettingParser.GetSetting(target, PrefixState.NotPrefixed);
+			SettingParser.TryGetSetting(target, PrefixState.NotPrefixed, out var setting);
 			var value = (IList<int>)setting.GetValue();
 			Assert.AreEqual(3, value.Count);
 			SettingParser.Parse($"{str} 50"); //add 50
@@ -74,7 +75,7 @@ namespace AdvorangesSettingParser.Tests
 		public void Set_Test()
 		{
 			var list = new[] { "dog", "cat", "fish" };
-			var setting = SettingParser.GetSetting(nameof(TestClass.ListStrings), PrefixState.NotPrefixed);
+			SettingParser.TryGetSetting(nameof(TestClass.ListStrings), PrefixState.NotPrefixed, out var setting);
 			Assert.AreNotEqual(null, setting);
 			var value = (ICollection<string>)setting.GetValue();
 			Assert.AreEqual(0, value.Count);
@@ -87,7 +88,7 @@ namespace AdvorangesSettingParser.Tests
 		[TestMethod]
 		public void Reset_Test()
 		{
-			var setting = SettingParser.GetSetting(nameof(TestClass.FilledListStrings), PrefixState.NotPrefixed);
+			SettingParser.TryGetSetting(nameof(TestClass.FilledListStrings), PrefixState.NotPrefixed, out var setting);
 			Assert.AreNotEqual(null, setting);
 			var value = (ICollection<string>)setting.GetValue();
 			Assert.AreNotEqual(0, value.Count);
@@ -99,7 +100,7 @@ namespace AdvorangesSettingParser.Tests
 		{
 			var target = nameof(TestClass.CollectionStrings);
 			var str = Prefix + target;
-			var setting = SettingParser.GetSetting(target, PrefixState.NotPrefixed);
+			SettingParser.TryGetSetting(target, PrefixState.NotPrefixed, out var setting);
 			Assert.AreNotEqual(null, setting);
 			var value = (ICollection<string>)setting.GetValue();
 			Assert.AreEqual(0, value.Count);

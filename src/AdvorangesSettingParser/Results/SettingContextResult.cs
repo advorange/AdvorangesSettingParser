@@ -1,6 +1,7 @@
 ﻿using System;
+using AdvorangesSettingParser.Interfaces;
 
-namespace AdvorangesSettingParser
+namespace AdvorangesSettingParser.Results
 {
 	/// <summary>
 	/// Result about the context of try set value.

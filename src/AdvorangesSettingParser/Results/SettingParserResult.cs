@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using AdvorangesSettingParser.Interfaces;
 
-namespace AdvorangesSettingParser
+namespace AdvorangesSettingParser.Results
 {
 	/// <summary>
 	/// Holds the results of parsing settings.

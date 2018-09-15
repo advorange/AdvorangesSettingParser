@@ -1,4 +1,6 @@
-﻿namespace AdvorangesSettingParser
+﻿using AdvorangesSettingParser.Interfaces;
+
+namespace AdvorangesSettingParser.Results
 {
 	/// <summary>
 	/// Result for something to do with a setting.
@@ -8,7 +10,7 @@
 		/// <summary>
 		/// The targeted setting.
 		/// </summary>
-		public IBasicSetting Setting { get; }
+		public ISettingMetadata Setting { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="SettingResult"/>.
@@ -16,7 +18,7 @@
 		/// <param name="setting"></param>
 		/// <param name="isSuccess"></param>
 		/// <param name="response"></param>
-		protected SettingResult(IBasicSetting setting, bool isSuccess, string response) : base(isSuccess, response)
+		protected SettingResult(ISettingMetadata setting, bool isSuccess, string response) : base(isSuccess, response)
 		{
 			Setting = setting;
 		}

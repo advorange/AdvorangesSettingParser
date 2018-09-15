@@ -1,4 +1,6 @@
-﻿namespace AdvorangesSettingParser
+﻿using AdvorangesSettingParser.Interfaces;
+
+namespace AdvorangesSettingParser.Results
 {
 	/// <summary>
 	/// Indicates the status of something.

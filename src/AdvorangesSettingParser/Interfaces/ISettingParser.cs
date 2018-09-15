@@ -1,43 +1,28 @@
 ﻿using System.Collections.Generic;
 
-namespace AdvorangesSettingParser
+namespace AdvorangesSettingParser.Interfaces
 {
 	/// <summary>
-	/// This interface is for a setting parser which allows showing some additional information about a <see cref="IBasicSettingParser"/>.
+	/// Only allows parsing and nothing else.
 	/// </summary>
-	/// <typeparam name="T">The type of settings to use.</typeparam>
-	public interface ISettingParser<T> : ISettingParserMetadata, IBasicSettingParser where T : IBasicSetting
+	public interface IBasicSettingParser
 	{
 		/// <summary>
-		/// Returns the settings.
+		/// Valid prefixes for a setting.
 		/// </summary>
-		/// <returns>All of the settings this parser holds.</returns>
-		IEnumerable<T> GetSettings();
-		/// <summary>
-		/// Returns a matching setting.
-		/// </summary>
-		/// <param name="name">The setting to get.</param>
-		/// <param name="state">How required the prefix is.</param>
-		/// <returns>The setting with either the specified name or alias.</returns>
-		T GetSetting(string name, PrefixState state);
-	}
+		IEnumerable<string> Prefixes { get; }
 
-	/// <summary>
-	/// This interface is for a setting parser which allows showing some additional information about a <see cref="IBasicSettingParser"/>.
-	/// </summary>
-	public interface ISettingParser : ISettingParserMetadata, IBasicSettingParser
-	{
 		/// <summary>
-		/// Returns the settings.
+		/// Finds settings and then sets their value.
 		/// </summary>
-		/// <returns>All of the settings this parser holds.</returns>
-		IEnumerable<IBasicSetting> GetSettings();
+		/// <param name="input">Input arguments to parse.</param>
+		/// <returns>The results of this parsing.</returns>
+		ISettingParserResult Parse(string input);
 		/// <summary>
-		/// Returns a matching setting.
+		/// Finds settings and then sets their value.
 		/// </summary>
-		/// <param name="name">The setting to get.</param>
-		/// <param name="state">How required the prefix is.</param>
-		/// <returns>The setting with either the specified name or alias.</returns>
-		IBasicSetting GetSetting(string name, PrefixState state);
+		/// <param name="input">Input arguments to parse.</param>
+		/// <returns>The results of this parsing.</returns>
+		ISettingParserResult Parse(string[] input);
 	}
 }

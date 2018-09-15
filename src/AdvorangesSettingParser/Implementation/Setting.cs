@@ -1,66 +1,72 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Linq.Expressions;
+using AdvorangesSettingParser.Interfaces;
+using AdvorangesSettingParser.Results;
+using AdvorangesUtils;
 
-namespace AdvorangesSettingParser
+namespace AdvorangesSettingParser.Implementation
 {
 	/// <summary>
 	/// A generic class for a setting, allowing full getter and setter capabilities on the target.
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public class Setting<T> : SettingBase<T, T>, ISetting<T>, ISetting
+	/// <typeparam name="TValue"></typeparam>
+	public class Setting<TValue> : SettingBase<TValue, TValue>, ISetting<TValue>, ISetting
 	{
-		private IRef<T> _Ref { get; set; }
+		private IRef<TValue> _Ref { get; set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="Setting{T}"/> with full setter and getter capabilities targeting the supplied value.
 		/// </summary>
-		/// <param name="selector">The targeted value. This can be any property/field local/instance/global/static in a class/struct. It NEEDS to have both a getter and setter.</param>
+		/// <param name="selector">The targeted value. This can be any property/field local/instance/global/static in a class. It NEEDS to have both a getter and setter.</param>
 		/// <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
 		/// <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type or enum.</param>
-		public Setting(Expression<Func<T>> selector, IEnumerable<string> names = default, TryParseDelegate<T> parser = default)
-			: this(new Ref<T>(selector), names, parser) { }
+		public Setting(Expression<Func<TValue>> selector, IEnumerable<string> names = default, TryParseDelegate<TValue> parser = default)
+			: this(new Ref<TValue>(selector), names, parser) { }
 		/// <summary>
 		/// Creates an instance of <see cref="Setting{T}"/> with full setter and getter capabilities targeting the supplied value.
 		/// </summary>
-		/// <param name="reference">The targeted value. This can be any property/field local/instance/global/static in a class/struct.</param>
+		/// <param name="reference">The targeted value. This can be any property/field local/instance/global/static in a class.</param>
 		/// <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
 		/// <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type or enum.</param>
-		public Setting(IRef<T> reference, IEnumerable<string> names = default, TryParseDelegate<T> parser = default)
-			: base(DistinctNames(reference.Name, names), parser)
+		public Setting(IRef<TValue> reference, IEnumerable<string> names = default, TryParseDelegate<TValue> parser = default)
+			: base(SettingParsingUtils.DistinctNames(reference.Name, names), parser)
 		{
 			_Ref = reference ?? throw new ArgumentException(nameof(reference));
 		}
 
 		/// <inheritdoc />
-		public override T GetValue()
+		public override TValue GetValue()
 			=> _Ref.GetValue();
 		/// <inheritdoc />
 		public override void ResetValue()
 			=> SetValue(ResetValueFactory(GetValue()));
 		/// <inheritdoc />
-		public override void SetValue(T value)
+		public override void SetValue(TValue value)
 		{
 			ThrowIfInvalid(value);
 			_Ref.SetValue(value);
 			HasBeenSet = true;
 		}
 		/// <inheritdoc />
-		public override bool TrySetValue(string value, out IResult response)
-			=> TrySetValue(value, null, out response);
+		public override IResult TrySetValue(string value)
+			=> TrySetValue(value, null);
 		/// <inheritdoc />
-		public override bool TrySetValue(string value, ITrySetValueContext context, out IResult response)
+		public override IResult TrySetValue(string value, ITrySetValueContext context)
 		{
-			if (!TryConvertValue(value, out var result, out response))
+			var convertResult = TryConvertValue(value, out var result);
+			if (!convertResult.IsSuccess)
 			{
-				return false;
+				return convertResult;
 			}
 			SetValue(result);
-			response = SetValueResult.FromSuccess(this, typeof(T), result, "Successfully set.");
-			return true;
+			return SetValueResult.FromSuccess(this, result, "Successfully set.");
 		}
 
 		//ISetting
-		void IDirectSetter.SetValue(object value) => SetValue((T)value);
+		object ISetting.GetValue() => GetValue();
+		void ISetting.SetValue(object value) => SetValue((TValue)value);
 	}
 }

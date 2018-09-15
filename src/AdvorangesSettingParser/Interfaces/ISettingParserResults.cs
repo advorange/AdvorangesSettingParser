@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AdvorangesSettingParser
+namespace AdvorangesSettingParser.Interfaces
 {
 	/// <summary>
 	/// Results gotten from parsing.
