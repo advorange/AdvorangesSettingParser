@@ -2,8 +2,12 @@
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesUtils;
 
-namespace AdvorangesSettingParser.Implementation
+namespace AdvorangesSettingParser.Implementation.Static
 {
+	/// <summary>
+	/// Allows creation of the settings statically, then providing an instance of the target type to fill up.
+	/// </summary>
+	/// <typeparam name="TSource"></typeparam>
 	public class StaticSettingParser<TSource> : SettingParserBase<IStaticSetting<TSource>>
 	{
 		/// <summary>

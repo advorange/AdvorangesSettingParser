@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using AdvorangesSettingParser.Interfaces;
-using AdvorangesSettingParser.Results;
+using AdvorangesSettingParser.Utils;
 
-namespace AdvorangesSettingParser.Implementation
+namespace AdvorangesSettingParser.Implementation.Static
 {
 	/// <summary>
 	/// A generic class for a static setting, allowing full getter and setter capabilities on the target with any passed in source.
@@ -37,24 +37,12 @@ namespace AdvorangesSettingParser.Implementation
 			=> SetValue(source, ResetValueFactory(GetValue(source)));
 		/// <inheritdoc />
 		public override void SetValue(TSource source, TValue value)
-		{
-			ThrowIfInvalid(value);
-			_Setter(source, value);
-			HasBeenSet = true;
-		}
+			=> SetValue(value, x => _Setter(source, x));
 		/// <inheritdoc />
 		public override IResult TrySetValue(TSource source, string value)
 			=> TrySetValue(source, value, null);
 		/// <inheritdoc />
 		public override IResult TrySetValue(TSource source, string value, ITrySetValueContext context)
-		{
-			var convertResult = TryConvertValue(value, out var result);
-			if (!convertResult.IsSuccess)
-			{
-				return convertResult;
-			}
-			SetValue(source, result);
-			return SetValueResult.FromSuccess(this, typeof(TValue), result, "Successfully set.");
-		}
+			=> TrySetValue(value, context, x => SetValue(source, x));
 	}
 }

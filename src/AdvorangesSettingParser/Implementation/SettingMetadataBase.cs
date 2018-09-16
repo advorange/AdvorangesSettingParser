@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Results;
-using AdvorangesUtils;
+using AdvorangesSettingParser.Utils;
 
 namespace AdvorangesSettingParser.Implementation
 {
@@ -13,7 +13,7 @@ namespace AdvorangesSettingParser.Implementation
 	/// </summary>
 	/// <typeparam name="TPropertyValue"></typeparam>
 	/// <typeparam name="TValue"></typeparam>
-	public abstract class SettingMetadataBase<TPropertyValue, TValue> : ISettingMetadata
+	public abstract class SettingMetadataBase<TPropertyValue, TValue> : IValueParser<TValue>, ISettingMetadata
 	{
 		/// <inheritdoc />
 		public string Description { get; set; }
@@ -55,17 +55,23 @@ namespace AdvorangesSettingParser.Implementation
 		public IEnumerable<string> Names { get; }
 		/// <inheritdoc />
 		public string MainName { get; }
-		/// <summary>
-		/// Parses the type from a string.
-		/// </summary>
+		/// <inheritdoc />
+		public Type TargetType { get; } = typeof(TPropertyValue);
+		/// <inheritdoc />
+		public Type ValueType { get; } = typeof(TValue);
+		/// <inheritdoc />
+		public IEqualityComparer<TValue> EqualityComparer
+		{
+			get => _EqualityComparer;
+			set => _EqualityComparer = value ?? throw new ArgumentException(nameof(EqualityComparer));
+		}
+		/// <inheritdoc />
 		public TryParseDelegate<TValue> Parser
 		{
 			get => _Parser;
 			set => _Parser = value ?? throw new ArgumentException(nameof(Parser));
 		}
-		/// <summary>
-		/// Validates the passed in value.
-		/// </summary>
+		/// <inheritdoc />
 		public Func<TValue, IResult> Validation
 		{
 			get => _Validation;
@@ -81,6 +87,7 @@ namespace AdvorangesSettingParser.Implementation
 		}
 
 		private bool _IsFlag { get; set; }
+		private IEqualityComparer<TValue> _EqualityComparer { get; set; } = EqualityComparer<TValue>.Default;
 		private TryParseDelegate<TValue> _Parser { get; set; }
 		private Func<TValue, IResult> _Validation { get; set; } = x => Result.FromSuccess("Successfully validated");
 		private Func<TPropertyValue, TPropertyValue> _ResetValueFactory { get; set; } = x => x;
@@ -105,38 +112,32 @@ namespace AdvorangesSettingParser.Implementation
 		/// <inheritdoc />
 		public override string ToString() => $"{MainName} ({typeof(TValue).Name})";
 		/// <summary>
-		/// Validates the value and throws if it's invalid.
+		/// Sets the value after validation and sets HasBeenSet to true;
 		/// </summary>
 		/// <param name="value"></param>
-		protected void ThrowIfInvalid(TValue value)
+		/// <param name="setter"></param>
+		protected virtual void SetValue(TValue value, Action<TValue> setter)
 		{
-			var validationResult = Validation(value);
-			if (!validationResult.IsSuccess)
-			{
-				throw new ArgumentException(validationResult.ToString(), MainName);
-			}
+			this.ThrowIfInvalid(value);
+			setter(value);
+			HasBeenSet = true;
 		}
 		/// <summary>
-		/// Attempts to convert the value.
+		/// Attempts to set the value.
 		/// </summary>
 		/// <param name="value"></param>
-		/// <param name="result"></param>
-		/// <param name="response"></param>
+		/// <param name="context"></param>
+		/// <param name="setter"></param>
 		/// <returns></returns>
-		protected virtual IResult TryConvertValue(string value, out TValue result)
+		protected virtual IResult TrySetValue(string value, ITrySetValueContext context, Action<TValue> setter)
 		{
-			result = default;
-			//Let default just pass on through and set the default value
-			if (!value.CaseInsEquals("default") && !Parser(value, out result))
+			var convertResult = this.TryConvertValue(value, out var result);
+			if (!convertResult.IsSuccess)
 			{
-				return SetValueResult.FromError(this, typeof(TValue), value, "Unable to convert.");
+				return convertResult;
 			}
-			if (result == null && CannotBeNull)
-			{
-				return SetValueResult.FromError(this, typeof(TValue), value, "Cannot be set to 'NULL'.");
-			}
-
-			return Validation(result) ?? Result.FromSuccess("Successfully converted");
+			setter(result);
+			return SetValueResult.FromSuccess(this, result, "Successfully set.");
 		}
 	}
 }

@@ -36,31 +36,11 @@ namespace AdvorangesSettingParser.Results
 		/// Returns a failed result.
 		/// </summary>
 		/// <param name="setting"></param>
-		/// <param name="parameterType"></param>
 		/// <param name="value"></param>
 		/// <param name="response"></param>
 		/// <returns></returns>
-		public static SetValueResult FromError(ISettingMetadata setting, Type parameterType, object value, string response)
-			=> new SetValueResult(false, response, setting, parameterType, value);
-		/// <summary>
-		/// Returns a successful result.
-		/// </summary>
-		/// <param name="setting"></param>
-		/// <param name="parameterType"></param>
-		/// <param name="value"></param>
-		/// <param name="response"></param>
-		/// <returns></returns>
-		public static SetValueResult FromSuccess(ISettingMetadata setting, Type parameterType, object value, string response)
-			=> new SetValueResult(true, response, setting, parameterType, value);
-		/// <summary>
-		/// Returns a failed result.
-		/// </summary>
-		/// <param name="setting"></param>
-		/// <param name="value"></param>
-		/// <param name="response"></param>
-		/// <returns></returns>
-		public static SetValueResult FromError<T>(ISetting<T> setting, object value, string response)
-			=> FromError(setting, typeof(T), value, response);
+		public static SetValueResult FromError(ISettingMetadata setting, object value, string response)
+			=> new SetValueResult(false, response, setting, setting.ValueType, value);
 		/// <summary>
 		/// Returns a successful result.
 		/// </summary>
@@ -68,10 +48,10 @@ namespace AdvorangesSettingParser.Results
 		/// <param name="value"></param>
 		/// <param name="response"></param>
 		/// <returns></returns>
-		public static SetValueResult FromSuccess<T>(ISetting<T> setting, object value, string response)
-			=> FromSuccess(setting, typeof(T), value, response);
+		public static SetValueResult FromSuccess(ISettingMetadata setting, object value, string response)
+			=> new SetValueResult(true, response, setting, setting.ValueType, value);
 
 		private static string GenerateResponse(ISettingMetadata setting, Type parameterType, object value, string response)
-			=> $"{response ?? throw new ArgumentException(nameof(response))} ({setting.MainName}, {value})".TrimStart();
+			=> $"{response ?? throw new ArgumentException(nameof(response))} ({setting.MainName}, {value?.ToString() ?? "NULL"})".TrimStart();
 	}
 }

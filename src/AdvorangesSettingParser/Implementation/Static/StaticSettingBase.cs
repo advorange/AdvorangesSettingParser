@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using AdvorangesSettingParser.Interfaces;
 
-namespace AdvorangesSettingParser.Implementation
+namespace AdvorangesSettingParser.Implementation.Static
 {
 	/// <summary>
-	/// Abstract implementation of a static setting.
+	/// Base class of a static setting.
+	/// Allows easy implementation of either a singular property or a collection property.
 	/// </summary>
 	/// <typeparam name="TSource"></typeparam>
 	/// <typeparam name="TPropertyValue"></typeparam>

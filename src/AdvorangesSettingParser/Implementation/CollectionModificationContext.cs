@@ -4,7 +4,7 @@ using AdvorangesSettingParser.Interfaces;
 namespace AdvorangesSettingParser.Implementation
 {
 	/// <summary>
-	/// Used in <see cref="CollectionSetting{T}"/> for determining whether to add or remove.
+	/// Used in collection settings for determining whether to add or remove.
 	/// </summary>
 	public class CollectionModificationContext : ITrySetValueContext
 	{

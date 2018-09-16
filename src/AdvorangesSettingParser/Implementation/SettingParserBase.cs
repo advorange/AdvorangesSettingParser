@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Results;
+using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Implementation
@@ -109,74 +110,13 @@ namespace AdvorangesSettingParser.Implementation
 			return false;
 		}
 		/// <summary>
-		/// Determines if the current index leads to a valid setting.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <param name="i"></param>
-		/// <param name="setting"></param>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		protected bool IsValidSetting(string[] input, ref int i, out T setting, out string value)
-		{
-			var isSetting = TryGetSetting(input[i], PrefixState.Required, out setting);
-			//If it's a flag set its value to true then return
-			//If it has a getter then check if it's set to toggle it
-			if (isSetting && setting.IsFlag)
-			{
-				value = setting is ISetting<bool> getter && getter.GetValue() ? bool.FalseString : bool.TrueString;
-				return true;
-			}
-
-			//If there's one more and it's not a setting assign that to value
-			value = input.Length - 1 > i && !TryGetSetting(input[i + 1], PrefixState.Required, out _) ? input[++i] : null;
-			return isSetting;
-		}
-		/// <summary>
-		/// Parses through all the text and then handles any setting.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <param name="setter"></param>
-		/// <returns></returns>
-		protected ISettingParserResult Parse(string[] input, Func<T, string, IResult> setter)
-		{
-			var unusedParts = new List<IResult>();
-			var successes = new List<IResult>();
-			var errors = new List<IResult>();
-			var help = new List<IResult>();
-			for (int i = 0; i < input.Length; ++i)
-			{
-				//No setting was gotten, so just skip this part unless it's help
-				var part = input[i];
-				if (!IsValidSetting(input, ref i, out var setting, out var value))
-				{
-					if (IsHelp(part))
-					{
-						help.Add(this.GetHelp(value));
-						continue;
-					}
-					unusedParts.Add(Result.FromError(part));
-					continue;
-				}
-				var response = setter(setting, value);
-				if (response.IsSuccess)
-				{
-					successes.Add(response);
-				}
-				else
-				{
-					errors.Add(response);
-				}
-			}
-			return new SettingParserResult(unusedParts, successes, errors, help);
-		}
-		/// <summary>
 		/// Removes the prefix from the start depending on the prefix state supplied.
 		/// </summary>
 		/// <param name="prefix"></param>
 		/// <param name="input"></param>
 		/// <param name="state"></param>
 		/// <returns></returns>
-		private string Deprefix(string prefix, string input, PrefixState state)
+		protected string Deprefix(string prefix, string input, PrefixState state)
 		{
 			switch (state)
 			{
@@ -199,16 +139,90 @@ namespace AdvorangesSettingParser.Implementation
 		/// <returns></returns>
 		public bool TryGetSetting(string name, PrefixState state, out T setting)
 		{
+			bool InternalTryGetSetting(string deprefixedName, out T returned)
+			{
+				var valid = NameMap.TryGetValue(deprefixedName, out var guid);
+				returned = valid ? SettingMap[guid] : default;
+				return valid;
+			}
+
 			foreach (var prefix in Prefixes)
 			{
-				if (Deprefix(prefix, name, state) is string val && NameMap.TryGetValue(val, out var guid))
+				if (Deprefix(prefix, name, state) is string deprefixedName && InternalTryGetSetting(deprefixedName, out setting))
 				{
-					setting = SettingMap[guid];
 					return true;
 				}
 			}
 			setting = default;
 			return false;
+		}
+		/// <summary>
+		/// Splits the input then parses it.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <param name="setter"></param>
+		/// <returns></returns>
+		public ISettingParserResult Parse(string input, Func<T, string, IResult> setter)
+			=> Parse(input.SplitLikeCommandLine(), setter);
+		/// <summary>
+		/// Parses through all the text and then handles any setting.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <param name="setter"></param>
+		/// <returns></returns>
+		public virtual ISettingParserResult Parse(string[] input, Func<T, string, IResult> setter)
+		{
+			var unusedParts = new List<IResult>();
+			var successes = new List<IResult>();
+			var errors = new List<IResult>();
+			var help = new List<IResult>();
+			for (int i = 0; i < input.Length; ++i)
+			{
+				var currentPart = input[i];
+
+				var validSetting = TryGetSetting(currentPart, PrefixState.Required, out var setting);
+				//If there's one more and it's not a setting assign that to value
+				var argExists = input.Length - 1 > i && !TryGetSetting(input[i + 1], PrefixState.Required, out _);
+				string nextIndexArg;
+				bool isValidSetting;
+				if (validSetting && setting.IsFlag)
+				{
+					//Default to true value for this flag argument
+					var val = true;
+					//Valid means no arg (use default true) or there is an arg and it's a valid bool (true or false)
+					var validFlagArg = !argExists || (argExists && bool.TryParse(input[++i], out val));
+					nextIndexArg = validFlagArg ? val.ToString() : null;
+					isValidSetting = validFlagArg;
+				}
+				else
+				{
+					nextIndexArg = argExists ? input[++i] : null;
+					isValidSetting = validSetting;
+				}
+
+				if (!isValidSetting)
+				{
+					if (IsHelp(currentPart))
+					{
+						help.Add(this.GetHelp(nextIndexArg));
+					}
+					else
+					{
+						unusedParts.Add(Result.FromError(currentPart));
+					}
+					continue;
+				}
+				var response = setter(setting, nextIndexArg);
+				if (response.IsSuccess)
+				{
+					successes.Add(response);
+				}
+				else
+				{
+					errors.Add(response);
+				}
+			}
+			return new SettingParserResult(unusedParts, successes, errors, help);
 		}
 		/// <inheritdoc />
 		public void Add(T setting)

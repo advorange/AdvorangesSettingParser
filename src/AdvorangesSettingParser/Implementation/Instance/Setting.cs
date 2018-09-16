@@ -5,9 +5,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Results;
+using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 
-namespace AdvorangesSettingParser.Implementation
+namespace AdvorangesSettingParser.Implementation.Instance
 {
 	/// <summary>
 	/// A generic class for a setting, allowing full getter and setter capabilities on the target.
@@ -45,25 +46,13 @@ namespace AdvorangesSettingParser.Implementation
 			=> SetValue(ResetValueFactory(GetValue()));
 		/// <inheritdoc />
 		public override void SetValue(TValue value)
-		{
-			ThrowIfInvalid(value);
-			_Ref.SetValue(value);
-			HasBeenSet = true;
-		}
+			=> SetValue(value, x => _Ref.SetValue(x));
 		/// <inheritdoc />
 		public override IResult TrySetValue(string value)
 			=> TrySetValue(value, null);
 		/// <inheritdoc />
 		public override IResult TrySetValue(string value, ITrySetValueContext context)
-		{
-			var convertResult = TryConvertValue(value, out var result);
-			if (!convertResult.IsSuccess)
-			{
-				return convertResult;
-			}
-			SetValue(result);
-			return SetValueResult.FromSuccess(this, result, "Successfully set.");
-		}
+			=> TrySetValue(value, context, x => SetValue(x));
 
 		//ISetting
 		object ISetting.GetValue() => GetValue();

@@ -2,8 +2,9 @@
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using AdvorangesSettingParser.Interfaces;
+using AdvorangesSettingParser.Utils;
 
-namespace AdvorangesSettingParser.Implementation
+namespace AdvorangesSettingParser.Implementation.Instance
 {
 	/// <summary>
 	/// Acts as the ref keyword for multiple types other than fields.
@@ -47,7 +48,7 @@ namespace AdvorangesSettingParser.Implementation
 		public Ref(Expression<Func<T>> selector)
 			: this(selector.GenerateSetter(), selector.Compile(), selector.GetMemberExpression().Member.Name) { }
 		/// <summary>
-		/// Creates an instance of <see cref="Ref{T}"/>. Do NOT use this if the target is on a struct.
+		/// Creates an instance of <see cref="Ref{T}"/>.
 		/// </summary>
 		/// <param name="setter">Sets the value.</param>
 		/// <param name="getter">Gets the value.</param>
@@ -60,9 +61,21 @@ namespace AdvorangesSettingParser.Implementation
 		}
 
 		/// <inheritdoc />
-		public T GetValue() => Getter();
+		public T GetValue()
+			=> Getter();
 		/// <inheritdoc />
-		public void SetValue(T value) => Setter(value);
+		public void SetValue(T value)
+			=> Setter(value);
+		/// <summary>
+		/// Creates a <see cref="Ref{T}"/> from an action and func targeting a something on a struct.
+		/// THIS WILL ONLY WORK ON LOCAL STRUCTS.
+		/// </summary>
+		/// <param name="setter"></param>
+		/// <param name="getter"></param>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public static Ref<T> FromStruct(Action<T> setter, Func<T> getter, string name = null)
+			=> new Ref<T>(setter, getter, name);
 		/// <summary>
 		/// Converts <see cref="Ref{T}"/> to its held value.
 		/// </summary>

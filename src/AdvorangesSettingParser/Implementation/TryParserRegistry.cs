@@ -5,7 +5,7 @@ using AdvorangesUtils;
 namespace AdvorangesSettingParser.Implementation
 {
 	/// <summary>
-	/// Registers parsers for easy retrieval.
+	/// Registers try parsers for easy retrieval.
 	/// </summary>
 	public class TryParserRegistry
 	{
@@ -14,7 +14,7 @@ namespace AdvorangesSettingParser.Implementation
 		/// </summary>
 		public static TryParserRegistry Instance { get; } = new TryParserRegistry();
 
-		private IDictionary<Type, object> TryParsers { get; } = new Dictionary<Type, object>();
+		private IDictionary<Type, object> _TryParsers { get; } = new Dictionary<Type, object>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="TryParserRegistry"/> and registers all primitive types.
@@ -42,39 +42,43 @@ namespace AdvorangesSettingParser.Implementation
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="tryParser"></param>
-		public void Register<T>(TryParseDelegate<T> tryParser) => TryParsers[typeof(T)] = tryParser;
+		public void Register<T>(TryParseDelegate<T> tryParser)
+			=> _TryParsers[typeof(T)] = tryParser;
 		/// <summary>
 		/// Removes the try parser for the specified type.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		public void Remove<T>() => TryParsers.Remove(typeof(T));
+		public void Remove<T>()
+			=> _TryParsers.Remove(typeof(T));
 		/// <summary>
 		/// Retries the try parser for the spcified type.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
 		public TryParseDelegate<T> Retrieve<T>()
+			=> TryRetrieve<T>(out var value) ? value : throw new KeyNotFoundException($"There is no try parser registered for {typeof(T).Name}.");
+		/// <summary>
+		/// Attempts to retrieve the try parser for the specified type.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public bool TryRetrieve<T>(out TryParseDelegate<T> value)
 		{
-			try
+			if (_TryParsers.TryGetValue(typeof(T), out var stored))
 			{
-				if (typeof(T).IsEnum)
-				{
-					if (TryParsers.TryGetValue(typeof(T), out var stored))
-					{
-						return (TryParseDelegate<T>)stored;
-					}
-
-					var newParser = new TryParseDelegate<T>(EnumTryParse);
-					Register(newParser);
-					return newParser;
-				}
-
-				return (TryParseDelegate<T>)TryParsers[typeof(T)];
+				value = (TryParseDelegate<T>)stored;
+				return true;
 			}
-			catch (KeyNotFoundException)
+			if (typeof(T).IsEnum)
 			{
-				throw new KeyNotFoundException($"There is no try parser registered for {typeof(T).Name}.");
+				var newParser = new TryParseDelegate<T>(EnumTryParse);
+				Register(newParser);
+				value = newParser;
+				return true;
 			}
+			value = default;
+			return false;
 		}
 		private static bool StringTryParse(string s, out string value)
 		{
@@ -95,26 +99,4 @@ namespace AdvorangesSettingParser.Implementation
 			return false;
 		}
 	}
-
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-	public static class Test
-	{
-		public static bool TryParseAClass(string s, out AClass result)
-		{
-			var instance = new AClass();
-			var parser = new SettingParser
-			{
-				new Setting<string>(() => instance.Dog),
-			};
-			var valid = parser.AreAllSet();
-			result = valid ? instance : default;
-			return valid;
-		}
-	}
-
-	public class AClass
-	{
-		public string Dog { get; set; }
-	}
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AdvorangesSettingParser.Interfaces
 {
@@ -41,8 +42,14 @@ namespace AdvorangesSettingParser.Interfaces
 		/// </summary>
 		bool HasBeenSet { get; }
 		/// <summary>
-		/// Indicates this is for providing help, and is not necessarily a setting.
+		/// The type of object this setting is targeting directly.
+		/// For example, if the property to modify is <see cref="ICollection{T}"/> this would be that type.
 		/// </summary>
-		bool IsHelp { get; }
+		Type TargetType { get; }
+		/// <summary>
+		/// The type this setting is trying to convert to.
+		/// For example, if <see cref="TargetType"/> is <see cref="ICollection{T}"/> this would be the type parameter.
+		/// </summary>
+		Type ValueType { get; }
 	}
 }

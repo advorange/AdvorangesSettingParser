@@ -15,7 +15,6 @@
 		/// </summary>
 		/// <param name="source"></param>
 		/// <param name="value">The passed in argument to convert.</param>
-		/// <param name="response">Response which can either be a success or failure string.</param>
 		/// <returns>Whether the value has successfully been set.</returns>
 		IResult TrySetValue(TSource source, string value);
 		/// <summary>
@@ -24,7 +23,6 @@
 		/// <param name="source"></param>
 		/// <param name="value">The passed in argument to convert.</param>
 		/// <param name="context">Additional arguments provided.</param>
-		/// <param name="response">Response which can either be a success or failure string.</param>
 		/// <returns>Whether the value has successfully been set.</returns>
 		IResult TrySetValue(TSource source, string value, ITrySetValueContext context);
 	}

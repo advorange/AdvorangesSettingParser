@@ -2,7 +2,7 @@
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesUtils;
 
-namespace AdvorangesSettingParser.Implementation
+namespace AdvorangesSettingParser.Implementation.Instance
 {
 	/// <summary>
 	/// Parses settings and then sets them.

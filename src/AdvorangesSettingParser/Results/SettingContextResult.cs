@@ -25,7 +25,7 @@ namespace AdvorangesSettingParser.Results
 		/// <param name="expected"></param>
 		/// <param name="given"></param>
 		/// <param name="response"></param>
-		protected SettingContextResult(bool isSuccess, string response, IBasicSetting setting, Type expected, Type given)
+		protected SettingContextResult(bool isSuccess, string response, ISettingMetadata setting, Type expected, Type given)
 			: base(setting, false, GenerateResponse(setting, expected, given, response))
 		{
 			ExpectedType = expected;
@@ -40,7 +40,7 @@ namespace AdvorangesSettingParser.Results
 		/// <param name="given"></param>
 		/// <param name="response"></param>
 		/// <returns></returns>
-		public static SettingContextResult FromError(IBasicSetting setting, Type expected, Type given, string response)
+		public static SettingContextResult FromError(ISettingMetadata setting, Type expected, Type given, string response)
 			=> new SettingContextResult(false, response, setting, expected, given);
 		/// <summary>
 		/// Returns a failed result.
@@ -50,10 +50,10 @@ namespace AdvorangesSettingParser.Results
 		/// <param name="given"></param>
 		/// <param name="response"></param>
 		/// <returns></returns>
-		public static SettingContextResult FromSuccess(IBasicSetting setting, Type expected, Type given, string response)
+		public static SettingContextResult FromSuccess(ISettingMetadata setting, Type expected, Type given, string response)
 			=> new SettingContextResult(true, response, setting, expected, given);
 
-		private static string GenerateResponse(IBasicSetting setting, Type expected, Type given, string response)
+		private static string GenerateResponse(ISettingMetadata setting, Type expected, Type given, string response)
 			=> $"{response ?? throw new ArgumentException(nameof(response))} ({setting.MainName}, {expected.Name}, {given?.Name ?? "Nothing"})".TrimStart();
 	}
 }

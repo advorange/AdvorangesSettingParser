@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using AdvorangesSettingParser.Implementation;
+using AdvorangesSettingParser.Implementation.Instance;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdvorangesSettingParser.Tests

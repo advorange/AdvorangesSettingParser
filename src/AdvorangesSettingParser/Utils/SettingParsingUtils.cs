@@ -8,10 +8,10 @@ using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Results;
 
-namespace AdvorangesSettingParser
+namespace AdvorangesSettingParser.Utils
 {
 	/// <summary>
-	/// Extension methods for <see cref="ISettingParser"/>.
+	/// Extension methods for <see cref="SettingParserBase{T}"/>.
 	/// </summary>
 	public static class SettingParsingUtils
 	{

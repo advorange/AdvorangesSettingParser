@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AdvorangesSettingParser.Implementation;
+using AdvorangesSettingParser.Implementation.Instance;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdvorangesSettingParser.Tests

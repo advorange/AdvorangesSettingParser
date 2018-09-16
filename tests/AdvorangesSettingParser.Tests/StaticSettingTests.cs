@@ -1,4 +1,5 @@
 ﻿using AdvorangesSettingParser.Implementation;
+using AdvorangesSettingParser.Implementation.Static;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdvorangesSettingParser.Tests
