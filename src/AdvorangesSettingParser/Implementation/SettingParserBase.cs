@@ -131,7 +131,7 @@ namespace AdvorangesSettingParser.Implementation
 			}
 		}
 		/// <summary>
-		/// Gets the setting with a matching name.
+		/// Attempts to get the setting with the specified name.
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="state"></param>
@@ -156,6 +156,14 @@ namespace AdvorangesSettingParser.Implementation
 			setting = default;
 			return false;
 		}
+		/// <summary>
+		/// Gets the setting with the specified name and throws if it's not found.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="state"></param>
+		/// <returns></returns>
+		public T GetSetting(string name, PrefixState state)
+			=> TryGetSetting(name, state, out T temp) ? temp : throw new KeyNotFoundException($"There is no setting with the registered name {name}.");
 		/// <summary>
 		/// Splits the input then parses it.
 		/// </summary>

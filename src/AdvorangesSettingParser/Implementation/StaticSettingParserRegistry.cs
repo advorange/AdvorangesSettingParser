@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AdvorangesSettingParser.Implementation.Static;
 using AdvorangesSettingParser.Interfaces;
+using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Implementation
 {
@@ -58,6 +59,16 @@ namespace AdvorangesSettingParser.Implementation
 		/// <param name="parsableFirst">Whether to check for the object being parsable first before trying to get the registered setting parser.</param>
 		/// <returns></returns>
 		public ISettingParserResult Parse<T>(T source, string args, bool parsableFirst = true)
+			=> Parse(source, args.SplitLikeCommandLine(), parsableFirst);
+		/// <summary>
+		/// If <paramref name="source"/> is <see cref="IParsable"/> will use that parser, otherwise searches for a registered parser.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="source"></param>
+		/// <param name="args"></param>
+		/// <param name="parsableFirst">Whether to check for the object being parsable first before trying to get the registered setting parser.</param>
+		/// <returns></returns>
+		public ISettingParserResult Parse<T>(T source, string[] args, bool parsableFirst = true)
 		{
 			if (parsableFirst)
 			{
