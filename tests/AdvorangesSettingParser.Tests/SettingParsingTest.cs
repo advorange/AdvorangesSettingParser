@@ -20,6 +20,7 @@ namespace AdvorangesSettingParser.Tests
 			new StaticSetting<TestClass, bool>(x => x.FlagValue2) { IsFlag = true, },
 			new StaticSetting<TestClass, ulong>(x => x.UlongValue),
 			new StaticSetting<TestClass, DateTime>(x => x.DateTimeValue, parser: DateTime.TryParse),
+			new StaticCollectionSetting<TestClass, string>(x => x.CollectionStrings),
 		};
 		private readonly TestClass Instance;
 		private readonly SettingParser SettingParser;
@@ -37,6 +38,7 @@ namespace AdvorangesSettingParser.Tests
 				new Setting<bool>(() => Instance.FlagValue2) { IsFlag = true, },
 				new Setting<ulong>(() => Instance.UlongValue),
 				new Setting<DateTime>(() => Instance.DateTimeValue, parser: DateTime.TryParse),
+				new CollectionSetting<string>(() => Instance.CollectionStrings),
 			};
 			Prefix = SettingParser.Prefixes.First();
 		}
@@ -58,9 +60,16 @@ namespace AdvorangesSettingParser.Tests
 		[TestMethod]
 		public void ComplicatedParsing_Test()
 		{
-			CopmlicatedParsing(SettingParser, (setting, value) => setting.TrySetValue(value), Instance);
+			ComplicatedParsing(SettingParser, (setting, value) => setting.TrySetValue(value), Instance);
 			var newClass = new TestClass();
-			CopmlicatedParsing(StaticSettingParser, (setting, value) => setting.TrySetValue(newClass, value), newClass);
+			ComplicatedParsing(StaticSettingParser, (setting, value) => setting.TrySetValue(newClass, value), newClass);
+		}
+		[TestMethod]
+		public void CollectionParsing_Test()
+		{
+			CollectionParsing(SettingParser, (setting, value) => setting.TrySetValue(value), Instance);
+			var newClass = new TestClass();
+			CollectionParsing(StaticSettingParser, (setting, value) => setting.TrySetValue(newClass, value), newClass);
 		}
 		private static void BasicParsing<T>(SettingParserBase<T> parser, Func<T, string, IResult> setter, TestClass source) where T : ISettingMetadata
 		{
@@ -86,7 +95,7 @@ namespace AdvorangesSettingParser.Tests
 			parser.Parse($"{prefix}{nameof(TestClass.FlagValue)} false", setter);
 			Assert.AreEqual(false, source.FlagValue);
 		}
-		private static void CopmlicatedParsing<T>(SettingParserBase<T> parser, Func<T, string, IResult> setter, TestClass source) where T : ISettingMetadata
+		private static void ComplicatedParsing<T>(SettingParserBase<T> parser, Func<T, string, IResult> setter, TestClass source) where T : ISettingMetadata
 		{
 			var prefix = parser.Prefixes.First();
 			var args = $"{prefix}{nameof(TestClass.StringValue)} StringValueTest2 " +
@@ -104,6 +113,14 @@ namespace AdvorangesSettingParser.Tests
 			Assert.AreEqual(true, source.FlagValue2);
 			Assert.AreEqual(true, source.BoolValue);
 			Assert.AreEqual(default(ulong), source.UlongValue);
+		}
+		private static void CollectionParsing<T>(SettingParserBase<T> parser, Func<T, string, IResult> setter, TestClass source) where T : ISettingMetadata
+		{
+			var prefix = parser.Prefixes.First();
+			var args = $"{prefix}{nameof(TestClass.CollectionStrings)} CollectionValue";
+			var result = parser.Parse(args, setter);
+			Assert.AreEqual(1, result.Successes.Count());
+			Assert.AreEqual("CollectionValue", source.CollectionStrings.First());
 		}
 	}
 }
