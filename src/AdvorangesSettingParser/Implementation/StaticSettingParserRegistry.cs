@@ -16,6 +16,11 @@ namespace AdvorangesSettingParser.Implementation
 		/// </summary>
 		public static StaticSettingParserRegistry Instance { get; } = new StaticSettingParserRegistry();
 
+		/// <summary>
+		/// The types registered in this instance.
+		/// </summary>
+		public IEnumerable<Type> RegisteredTypes => _SettingParsers.Keys;
+
 		private IDictionary<Type, object> _SettingParsers { get; } = new Dictionary<Type, object>();
 
 		/// <summary>

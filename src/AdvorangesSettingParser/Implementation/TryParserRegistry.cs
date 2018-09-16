@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Implementation
@@ -14,6 +16,11 @@ namespace AdvorangesSettingParser.Implementation
 		/// </summary>
 		public static TryParserRegistry Instance { get; } = new TryParserRegistry();
 
+		/// <summary>
+		/// The types registered in this instance.
+		/// </summary>
+		public IEnumerable<Type> RegisteredTypes => _TryParsers.Keys;
+
 		private IDictionary<Type, object> _TryParsers { get; } = new Dictionary<Type, object>();
 
 		/// <summary>
@@ -21,19 +28,19 @@ namespace AdvorangesSettingParser.Implementation
 		/// </summary>
 		public TryParserRegistry()
 		{
-			Register(new TryParseDelegate<sbyte>(sbyte.TryParse));
-			Register(new TryParseDelegate<byte>(byte.TryParse));
-			Register(new TryParseDelegate<short>(short.TryParse));
-			Register(new TryParseDelegate<ushort>(ushort.TryParse));
-			Register(new TryParseDelegate<int>(int.TryParse));
-			Register(new TryParseDelegate<uint>(uint.TryParse));
-			Register(new TryParseDelegate<long>(long.TryParse));
-			Register(new TryParseDelegate<ulong>(ulong.TryParse));
-			Register(new TryParseDelegate<char>(char.TryParse));
-			Register(new TryParseDelegate<float>(float.TryParse));
-			Register(new TryParseDelegate<double>(double.TryParse));
-			Register(new TryParseDelegate<bool>(bool.TryParse));
-			Register(new TryParseDelegate<decimal>(decimal.TryParse));
+			RegisterNullable(new TryParseDelegate<sbyte>(sbyte.TryParse));
+			RegisterNullable(new TryParseDelegate<byte>(byte.TryParse));
+			RegisterNullable(new TryParseDelegate<short>(short.TryParse));
+			RegisterNullable(new TryParseDelegate<ushort>(ushort.TryParse));
+			RegisterNullable(new TryParseDelegate<int>(int.TryParse));
+			RegisterNullable(new TryParseDelegate<uint>(uint.TryParse));
+			RegisterNullable(new TryParseDelegate<long>(long.TryParse));
+			RegisterNullable(new TryParseDelegate<ulong>(ulong.TryParse));
+			RegisterNullable(new TryParseDelegate<char>(char.TryParse));
+			RegisterNullable(new TryParseDelegate<float>(float.TryParse));
+			RegisterNullable(new TryParseDelegate<double>(double.TryParse));
+			RegisterNullable(new TryParseDelegate<bool>(bool.TryParse));
+			RegisterNullable(new TryParseDelegate<decimal>(decimal.TryParse));
 			Register(new TryParseDelegate<string>(StringTryParse));
 		}
 
@@ -42,8 +49,45 @@ namespace AdvorangesSettingParser.Implementation
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="tryParser"></param>
-		public void Register<T>(TryParseDelegate<T> tryParser)
-			=> _TryParsers[typeof(T)] = tryParser;
+		/// <param name="forceRegisterNullable">
+		/// Forces <see cref="RegisterNullable{T}(TryParseDelegate{T})"/> to be called even if the generic parameters are not met.
+		/// This uses reflection.
+		/// </param>
+		public void Register<T>(TryParseDelegate<T> tryParser, bool forceRegisterNullable = false)
+		{
+			if (!forceRegisterNullable || !typeof(T).IsValueType)
+			{
+				_TryParsers.Add(typeof(T), tryParser);
+				return;
+			}
+
+			var method = GetType().GetMethods().Single(x => x.Name == nameof(RegisterNullable));
+			var genericMethod = method.MakeGenericMethod(typeof(T));
+			genericMethod.Invoke(this, new object[] { tryParser });
+		}
+		/// <summary>
+		/// Registers the current try parser and its nullable form so it can be used upon request.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="tryParser"></param>
+		public void RegisterNullable<T>(TryParseDelegate<T> tryParser) where T : struct
+		{
+			_TryParsers.Add(typeof(T), tryParser);
+			_TryParsers.Add(typeof(T?), new TryParseDelegate<T?>((string s, out T? result) =>
+			{
+				//If the value passed in is null, allow that since this is a nullable type.
+				if (s == null)
+				{
+					result = null;
+					return true;
+				}
+
+				//Otherwise, only allow successfully parsed values
+				var success = tryParser(s, out var temp);
+				result = success ? (T?)temp : null;
+				return success;
+			}));
+		}
 		/// <summary>
 		/// Removes the try parser for the specified type.
 		/// </summary>
