@@ -1,28 +1,44 @@
 ﻿using System.Collections.Generic;
+using AdvorangesSettingParser.Implementation;
 
 namespace AdvorangesSettingParser.Interfaces
 {
 	/// <summary>
-	/// Only allows parsing and nothing else.
+	/// Allows for parsing arguments and seeing the metadata of settings.
 	/// </summary>
-	public interface IBasicSettingParser
+	public interface ISettingParser
 	{
 		/// <summary>
-		/// Valid prefixes for a setting.
+		/// The prefixes of this parser.
 		/// </summary>
 		IEnumerable<string> Prefixes { get; }
 
 		/// <summary>
-		/// Finds settings and then sets their value.
+		/// The settings of this parser.
 		/// </summary>
-		/// <param name="input">Input arguments to parse.</param>
-		/// <returns>The results of this parsing.</returns>
-		ISettingParserResult Parse(string input);
+		/// <returns></returns>
+		IEnumerable<ISettingMetadata> GetSettings();
 		/// <summary>
-		/// Finds settings and then sets their value.
+		/// Attempts to get a setting with the specified name.
 		/// </summary>
-		/// <param name="input">Input arguments to parse.</param>
-		/// <returns>The results of this parsing.</returns>
-		ISettingParserResult Parse(string[] input);
+		/// <param name="name"></param>
+		/// <param name="state"></param>
+		/// <param name="setting"></param>
+		/// <returns></returns>
+		bool TryGetSetting(string name, PrefixState state, out ISettingMetadata setting);
+		/// <summary>
+		/// Either gets a setting with the specified name or throws an exception.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="state"></param>
+		/// <returns></returns>
+		ISettingMetadata GetSetting(string name, PrefixState state);
+		/// <summary>
+		/// <paramref name="source"/> is required if this is a static setting parser, otherwise it is ignored.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		ISettingParserResult Parse(object source, ParseArgs input);
 	}
 }

@@ -17,10 +17,10 @@ namespace AdvorangesSettingParser.Implementation.Static
 		public StaticSettingParser(IEnumerable<string> prefixes = default) : base(prefixes) { }
 
 		/// <inheritdoc />
-		public ISettingParserResult Parse(TSource source, string input)
-			=> Parse(source, input.SplitLikeCommandLine());
+		protected override ISettingParserResult Parse(object source, ParseArgs input)
+			=> Parse((TSource)source, input);
 		/// <inheritdoc />
-		public ISettingParserResult Parse(TSource source, string[] input)
+		public ISettingParserResult Parse(TSource source, ParseArgs input)
 			=> Parse(input, (setting, value) => setting.TrySetValue(source, value));
 	}
 }

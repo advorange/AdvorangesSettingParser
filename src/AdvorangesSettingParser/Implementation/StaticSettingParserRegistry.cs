@@ -50,42 +50,5 @@ namespace AdvorangesSettingParser.Implementation
 			value = valid ? (StaticSettingParser<T>)stored : default;
 			return valid;
 		}
-		/// <summary>
-		/// If <paramref name="source"/> is <see cref="IParsable"/> will use that parser, otherwise searches for a registered parser.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="source"></param>
-		/// <param name="args"></param>
-		/// <param name="parsableFirst">Whether to check for the object being parsable first before trying to get the registered setting parser.</param>
-		/// <returns></returns>
-		public ISettingParserResult Parse<T>(T source, string args, bool parsableFirst = true)
-			=> Parse(source, args.SplitLikeCommandLine(), parsableFirst);
-		/// <summary>
-		/// If <paramref name="source"/> is <see cref="IParsable"/> will use that parser, otherwise searches for a registered parser.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="source"></param>
-		/// <param name="args"></param>
-		/// <param name="parsableFirst">Whether to check for the object being parsable first before trying to get the registered setting parser.</param>
-		/// <returns></returns>
-		public ISettingParserResult Parse<T>(T source, string[] args, bool parsableFirst = true)
-		{
-			if (parsableFirst)
-			{
-				return source is IParsable parsable ? parsable.SettingParser.Parse(args) : Retrieve<T>().Parse(source, args);
-			}
-			else
-			{
-				if (TryRetrieve<T>(out var value))
-				{
-					return value.Parse(source, args);
-				}
-				if (source is IParsable parsable)
-				{
-					return parsable.SettingParser.Parse(args);
-				}
-				throw new KeyNotFoundException($"There is no setting parser registered for {typeof(T).Name}.");
-			}
-		}
 	}
 }

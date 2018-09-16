@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using AdvorangesSettingParser.Interfaces;
-using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Implementation.Instance
 {
@@ -18,10 +17,10 @@ namespace AdvorangesSettingParser.Implementation.Instance
 		public SettingParser(IEnumerable<string> prefixes = default) : base(prefixes) { }
 
 		/// <inheritdoc />
-		public ISettingParserResult Parse(string input)
-			=> Parse(input.SplitLikeCommandLine());
+		protected override ISettingParserResult Parse(object source, ParseArgs input)
+			=> Parse(input);
 		/// <inheritdoc />
-		public ISettingParserResult Parse(string[] input)
+		public ISettingParserResult Parse(ParseArgs input)
 			=> Parse(input, (setting, value) => setting.TrySetValue(value));
 	}
 }

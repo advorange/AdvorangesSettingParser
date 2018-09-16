@@ -7,6 +7,7 @@ using System.Text;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Results;
+using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Utils
 {
@@ -18,11 +19,11 @@ namespace AdvorangesSettingParser.Utils
 		/// <summary>
 		/// Formats a string describing what settings still need to be set.
 		/// </summary>
-		/// <param name="parser">The parser.</param>
+		/// <param name="settings">The parser.</param>
 		/// <returns>A description of what settings still need to be set.</returns>
-		public static string FormatNeededSettings<T>(this SettingParserBase<T> parser) where T : ISettingMetadata
+		public static string FormatNeededSettings<T>(this IEnumerable<T> settings) where T : ISettingMetadata
 		{
-			var unsetArguments = parser.GetNeededSettings();
+			var unsetArguments = settings.GetNeededSettings();
 			if (!unsetArguments.Any())
 			{
 				return $"Every setting which is necessary has been set.";
@@ -54,17 +55,17 @@ namespace AdvorangesSettingParser.Utils
 		/// <summary>
 		/// Returns settings which have not been set and are not optional.
 		/// </summary>
-		/// <param name="parser">The parser.</param>
+		/// <param name="settings">The parser.</param>
 		/// <returns>The settings which still need to be set.</returns>
-		public static IEnumerable<T> GetNeededSettings<T>(this SettingParserBase<T> parser) where T : ISettingMetadata
-			=> parser.Where(x => !(x.HasBeenSet || x.IsOptional));
+		public static IEnumerable<T> GetNeededSettings<T>(this IEnumerable<T> settings) where T : ISettingMetadata
+			=> settings.Where(x => !(x.HasBeenSet || x.IsOptional));
 		/// <summary>
 		/// Returns true if every setting is either set or optional.
 		/// </summary>
-		/// <param name="parser">The parser.</param>
+		/// <param name="settings">The parser.</param>
 		/// <returns>Whether every setting has been set.</returns>
-		public static bool AreAllSet<T>(this SettingParserBase<T> parser) where T : ISettingMetadata
-			=> parser.All(x => x.HasBeenSet || x.IsOptional);
+		public static bool AreAllSet<T>(this IEnumerable<T> settings) where T : ISettingMetadata
+			=> settings.All(x => x.HasBeenSet || x.IsOptional);
 		/// <summary>
 		/// Gets the member expression from <paramref name="expression"/>.
 		/// </summary>
@@ -151,5 +152,50 @@ namespace AdvorangesSettingParser.Utils
 			var concatted = new[] { name }.Concat(aliases ?? Enumerable.Empty<string>());
 			return concatted.Where(x => x != null).GroupBy(x => x).Select(x => x.First());
 		}
+		/// <summary>
+		/// Gets the setting parser either registered for the type or in the type.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="registry"></param>
+		/// <param name="source"></param>
+		/// <param name="parsableFirst"></param>
+		/// <returns></returns>
+		public static ISettingParser GetSettingParser<T>(this StaticSettingParserRegistry registry, T source, bool parsableFirst = true)
+		{
+			if (parsableFirst)
+			{
+				if (source is IParsable parsable)
+				{
+					return parsable.SettingParser;
+				}
+				if (registry.TryRetrieve<T>(out var value))
+				{
+					return value;
+				}
+			}
+			else
+			{
+				if (registry.TryRetrieve<T>(out var value))
+				{
+					return value;
+				}
+				if (source is IParsable parsable)
+				{
+					return parsable.SettingParser;
+				}
+			}
+			throw new KeyNotFoundException($"There is no setting parser registered for {typeof(T).Name}.");
+		}
+		/// <summary>
+		/// If <paramref name="source"/> is <see cref="IParsable"/> will use that parser, otherwise searches for a registered parser.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="registry"></param>
+		/// <param name="source"></param>
+		/// <param name="args"></param>
+		/// <param name="parsableFirst">Whether to check for the object being parsable first before trying to get the registered setting parser.</param>
+		/// <returns></returns>
+		public static ISettingParserResult Parse<T>(this StaticSettingParserRegistry registry, T source, ParseArgs args, bool parsableFirst = true)
+			=> registry.GetSettingParser(source).Parse(source, args);
 	}
 }

@@ -14,7 +14,7 @@ namespace AdvorangesSettingParser.Implementation
 	/// Base class for parsing settings.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class SettingParserBase<T> : ICollection<T> where T : ISettingMetadata
+	public abstract class SettingParserBase<T> : ISettingParser, ICollection<T> where T : ISettingMetadata
 	{
 		/// <summary>
 		/// The default prefixes used for setting parsing.
@@ -51,22 +51,14 @@ namespace AdvorangesSettingParser.Implementation
 		}
 
 		/// <summary>
-		/// Returns a dictionary of names and their values. Names are only counted if they begin with passed in a prefix.
-		/// </summary>
-		/// <param name="prefixes"></param>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static Dictionary<string, string> Parse(string[] prefixes, string input)
-			=> Parse(prefixes, input.SplitLikeCommandLine());
-		/// <summary>
 		/// Returns a dictionary of names and their values. Names are only counted if they begin with a passed in prefix.
 		/// </summary>
 		/// <param name="prefixes"></param>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static Dictionary<string, string> Parse(string[] prefixes, string[] input)
+		public static Dictionary<string, string> Parse(IEnumerable<string> prefixes, ParseArgs input)
 		{
-			bool HasPrefix(string[] p, string i)
+			bool HasPrefix(IEnumerable<string> p, string i)
 			{
 				return p.Any(x => i.CaseInsStartsWith(x));
 			}
@@ -93,6 +85,13 @@ namespace AdvorangesSettingParser.Implementation
 			}
 			return dict;
 		}
+		/// <summary>
+		/// Abstract and protected to handle implementation from an instance and static context.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		protected abstract ISettingParserResult Parse(object source, ParseArgs input);
 		/// <summary>
 		/// Determines whether this value is the help command.
 		/// </summary>
@@ -165,20 +164,12 @@ namespace AdvorangesSettingParser.Implementation
 		public T GetSetting(string name, PrefixState state)
 			=> TryGetSetting(name, state, out T temp) ? temp : throw new KeyNotFoundException($"There is no setting with the registered name {name}.");
 		/// <summary>
-		/// Splits the input then parses it.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <param name="setter"></param>
-		/// <returns></returns>
-		public ISettingParserResult Parse(string input, Func<T, string, IResult> setter)
-			=> Parse(input.SplitLikeCommandLine(), setter);
-		/// <summary>
 		/// Parses through all the text and then handles any setting.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <param name="setter"></param>
 		/// <returns></returns>
-		public virtual ISettingParserResult Parse(string[] input, Func<T, string, IResult> setter)
+		public virtual ISettingParserResult Parse(ParseArgs input, Func<T, string, IResult> setter)
 		{
 			var unusedParts = new List<IResult>();
 			var successes = new List<IResult>();
@@ -273,5 +264,19 @@ namespace AdvorangesSettingParser.Implementation
 		/// <inheritdoc />
 		IEnumerator IEnumerable.GetEnumerator()
 			=> SettingMap.Values.GetEnumerator();
+
+		//ISettingParser
+		IEnumerable<ISettingMetadata> ISettingParser.GetSettings()
+			=> this.OfType<ISettingMetadata>();
+		bool ISettingParser.TryGetSetting(string name, PrefixState state, out ISettingMetadata setting)
+		{
+			var success = TryGetSetting(name, state, out var temp);
+			setting = temp;
+			return success;
+		}
+		ISettingMetadata ISettingParser.GetSetting(string name, PrefixState state)
+			=> GetSetting(name, state);
+		ISettingParserResult ISettingParser.Parse(object source, ParseArgs input)
+			=> Parse(source, input);
 	}
 }
