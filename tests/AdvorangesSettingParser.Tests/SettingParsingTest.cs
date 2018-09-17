@@ -97,8 +97,9 @@ namespace AdvorangesSettingParser.Tests
 		}
 		private static void ComplicatedParsing<T>(SettingParserBase<T> parser, Func<T, string, IResult> setter, TestClass source) where T : ISettingMetadata
 		{
+			var testStr = "Space \"Double deep quote\" Test";
 			var prefix = parser.Prefixes.First();
-			var args = $"{prefix}{nameof(TestClass.StringValue)} StringValueTest2 " +
+			var args = $"{prefix}{nameof(TestClass.StringValue)} \"{testStr}\" " +
 				$"{prefix}{nameof(TestClass.FlagValue2)} " +
 				$"{prefix}{nameof(TestClass.BoolValue)} true " +
 				$"{prefix}{nameof(TestClass.UlongValue)} asdf " +
@@ -109,7 +110,7 @@ namespace AdvorangesSettingParser.Tests
 			Assert.AreEqual(1, result.Errors.Count());
 			Assert.AreEqual(1, result.UnusedParts.Count());
 			Assert.AreEqual(1, result.Help.Count());
-			Assert.AreEqual("StringValueTest2", source.StringValue);
+			Assert.AreEqual(testStr, source.StringValue);
 			Assert.AreEqual(true, source.FlagValue2);
 			Assert.AreEqual(true, source.BoolValue);
 			Assert.AreEqual(default(ulong), source.UlongValue);

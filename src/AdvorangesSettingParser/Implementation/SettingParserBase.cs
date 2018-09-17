@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Results;
-using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Implementation
@@ -20,10 +19,6 @@ namespace AdvorangesSettingParser.Implementation
 		/// The default prefixes used for setting parsing.
 		/// </summary>
 		public static IEnumerable<string> DefaultPrefixes { get; } = new[] { "-", "--", "/" }.ToImmutableArray();
-		/// <summary>
-		/// The values used for help.
-		/// </summary>
-		public static IEnumerable<string> Help { get; } = new[] { "help", "h" }.ToImmutableArray();
 
 		/// <inheritdoc />
 		public IEnumerable<string> Prefixes { get; }
@@ -56,66 +51,112 @@ namespace AdvorangesSettingParser.Implementation
 		/// <param name="prefixes"></param>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static Dictionary<string, string> Parse(IEnumerable<string> prefixes, ParseArgs input)
+		public static IEnumerable<(string Setting, string Args)> Parse(IEnumerable<string> prefixes, ParseArgs input)
 		{
-			bool HasPrefix(IEnumerable<string> p, string i)
+			return CreateArgMap(input, (string s, out string result) =>
 			{
-				return p.Any(x => i.CaseInsStartsWith(x));
-			}
-
-			var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-			for (int i = 0; i < input.Length; ++i)
-			{
-				var part = input[i];
-				if (!HasPrefix(prefixes, part))
+				foreach (var prefix in prefixes)
 				{
+					if (s.StartsWith(prefix))
+					{
+						result = Deprefix(prefix, s, PrefixState.Required);
+						return true;
+					}
+				}
+				result = null;
+				return false;
+			});
+		}
+		/// <summary>
+		/// Maps each setting of type <typeparamref name="TValue"/> to a value.
+		/// Can map the same setting multiple times to different values, but will all be in the passed in order.
+		/// </summary>
+		/// <typeparam name="TValue"></typeparam>
+		/// <param name="args"></param>
+		/// <param name="tryParser"></param>
+		/// <returns></returns>
+		public static IEnumerable<(TValue Setting, string Args)> CreateArgMap<TValue>(ParseArgs args, TryParseDelegate<TValue> tryParser)
+		{
+			string AddArgs(ref string current, string n)
+				=> current += current != null ? $" {n}" : n;
+
+			//Something like -FieldInfo "-Name "Test Value" -Text TestText" (with or without quotes around the whole thing)
+			//Should parse into:
+			//-FieldInfo
+			//	-Name
+			//		Test Value
+			//	-Text
+			//		TestText
+			//Which with the current data structure should be (FieldInfo, "-Name "Test Value" -Text TestText")
+			//then when those get parsed would turn into (Name, Test Value) and (Text, TestText)
+			var currentSetting = default(TValue);
+			var currentArgs = default(string);
+			var quoteDeepness = 0;
+			for (int i = 0; i < args.Length; ++i)
+			{
+				var (StartsWithQuotes, EndsWithQuotes, Value) = TrimSingle(args[i], ParseArgs.DefaultQuotes);
+
+				if (StartsWithQuotes) { ++quoteDeepness; }
+				if (EndsWithQuotes) { --quoteDeepness; }
+				//New setting found, so return current values and reset state for next setting
+				if (quoteDeepness == 0)
+				{
+					//When this is not a setting we add the args onto the current args then return the current values instantly
+					//We can't return Value directly because if there were other quote deepness args we need to count those.
+					if (!tryParser(Value, out var setting))
+					{
+						yield return (currentSetting, AddArgs(ref currentArgs, Value));
+					}
+					//When this is a setting we only check if there's a setting from the last iteration
+					//If there is, we send that one because there's a chance it could be a parameterless setting
+					else if (currentSetting != null)
+					{
+						yield return (currentSetting, currentArgs);
+					}
+					currentSetting = setting;
+					currentArgs = null;
 					continue;
 				}
 
-				//Part following is not a setting, so it must be the value.
-				if (input.Length - 1 > i && !HasPrefix(prefixes, input[i + 1]))
-				{
-					dict.Add(part, input[++i]);
-				}
-				//Otherwise there is no value
-				else
-				{
-					dict.Add(part, null);
-				}
+				//If inside any quotes at all, keep adding until we run out of args
+				AddArgs(ref currentArgs, Value);
 			}
-			return dict;
-		}
-		/// <summary>
-		/// Abstract and protected to handle implementation from an instance and static context.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		protected abstract ISettingParserResult Parse(object source, ParseArgs input);
-		/// <summary>
-		/// Determines whether this value is the help command.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		protected bool IsHelp(string input)
-		{
-			foreach (var prefix in Prefixes)
+			//Return any leftover parts which haven't been returned yet
+			if (currentSetting != default || currentArgs != null)
 			{
-				if (Deprefix(prefix, input, PrefixState.Required) is string val && Help.CaseInsContains(val))
+				yield return (currentSetting, currentArgs);
+			}
+		}
+		private static (bool Start, bool End, string Value) TrimSingle(string s, IEnumerable<char> quoteChars)
+		{
+			if (s == null)
+			{
+				return (false, false, null);
+			}
+
+			var start = false;
+			foreach (var c in quoteChars)
+			{
+				if (s.StartsWith(c.ToString()))
 				{
-					return true;
+					s = s.Substring(1);
+					start = true;
+					break;
 				}
 			}
-			return false;
+			var end = false;
+			foreach (var c in quoteChars)
+			{
+				if (s.EndsWith(c.ToString()))
+				{
+					s = s.Substring(0, s.Length - 1);
+					end = true;
+					break;
+				}
+			}
+			return (start, end, s);
 		}
-		/// <summary>
-		/// Removes the prefix from the start depending on the prefix state supplied.
-		/// </summary>
-		/// <param name="prefix"></param>
-		/// <param name="input"></param>
-		/// <param name="state"></param>
-		/// <returns></returns>
-		protected string Deprefix(string prefix, string input, PrefixState state)
+		private static string Deprefix(string prefix, string input, PrefixState state)
 		{
 			switch (state)
 			{
@@ -129,6 +170,13 @@ namespace AdvorangesSettingParser.Implementation
 					throw new InvalidOperationException("Invalid prefix state provided.");
 			}
 		}
+		/// <summary>
+		/// Abstract and protected to handle implementation from an instance and static context.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		protected abstract ISettingParserResult Parse(object source, ParseArgs input);
 		/// <summary>
 		/// Attempts to get the setting with the specified name.
 		/// </summary>
@@ -162,7 +210,7 @@ namespace AdvorangesSettingParser.Implementation
 		/// <param name="state"></param>
 		/// <returns></returns>
 		public T GetSetting(string name, PrefixState state)
-			=> TryGetSetting(name, state, out T temp) ? temp : throw new KeyNotFoundException($"There is no setting with the registered name {name}.");
+			=> TryGetSetting(name, state, out var temp) ? temp : throw new KeyNotFoundException($"There is no setting with the registered name {name}.");
 		/// <summary>
 		/// Parses through all the text and then handles any setting.
 		/// </summary>
@@ -174,44 +222,18 @@ namespace AdvorangesSettingParser.Implementation
 			var unusedParts = new List<IResult>();
 			var successes = new List<IResult>();
 			var errors = new List<IResult>();
-			var help = new List<IResult>();
-			for (int i = 0; i < input.Length; ++i)
+			var help = new List<HelpResult>();
+			var argMap = CreateArgMap(input, (string s, out T result) => TryGetSetting(s, PrefixState.Required, out result));
+			foreach (var (Setting, Args) in argMap)
 			{
-				var currentPart = input[i];
-
-				var validSetting = TryGetSetting(currentPart, PrefixState.Required, out var setting);
-				//If there's one more and it's not a setting assign that to value
-				var argExists = input.Length - 1 > i && !TryGetSetting(input[i + 1], PrefixState.Required, out _);
-				string nextIndexArg;
-				bool isValidSetting;
-				if (validSetting && setting.IsFlag)
+				if (Setting == null)
 				{
-					//Default to true value for this flag argument
-					var val = true;
-					//Valid means no arg (use default true) or there is an arg and it's a valid bool (true or false)
-					var validFlagArg = !argExists || (argExists && bool.TryParse(input[++i], out val));
-					nextIndexArg = validFlagArg ? val.ToString() : null;
-					isValidSetting = validFlagArg;
-				}
-				else
-				{
-					nextIndexArg = argExists ? input[++i] : null;
-					isValidSetting = validSetting;
-				}
-
-				if (!isValidSetting)
-				{
-					if (IsHelp(currentPart))
-					{
-						help.Add(this.GetHelp(nextIndexArg));
-					}
-					else
-					{
-						unusedParts.Add(Result.FromError(currentPart));
-					}
+					unusedParts.Add(Result.FromError(Args));
 					continue;
 				}
-				var response = setter(setting, nextIndexArg);
+
+				var args = Setting.IsFlag && Args == null ? bool.TrueString : Args;
+				var response = setter(Setting, args);
 				if (response.IsSuccess)
 				{
 					successes.Add(response);
@@ -219,6 +241,14 @@ namespace AdvorangesSettingParser.Implementation
 				else
 				{
 					errors.Add(response);
+				}
+			}
+			foreach (var success in successes.ToList())
+			{
+				if (success is HelpResult helpResult)
+				{
+					successes.Remove(success);
+					help.Add(helpResult);
 				}
 			}
 			return new SettingParserResult(unusedParts, successes, errors, help);
@@ -267,7 +297,7 @@ namespace AdvorangesSettingParser.Implementation
 
 		//ISettingParser
 		IEnumerable<ISettingMetadata> ISettingParser.GetSettings()
-			=> this.OfType<ISettingMetadata>();
+			=> this.OfType<ISettingMetadata>().Where(x => !(x is HelpCommand));
 		bool ISettingParser.TryGetSetting(string name, PrefixState state, out ISettingMetadata setting)
 		{
 			var success = TryGetSetting(name, state, out var temp);

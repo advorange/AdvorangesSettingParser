@@ -41,15 +41,15 @@ namespace AdvorangesSettingParser.Utils
 		/// <param name="parser"></param>
 		/// <param name="name">The setting to target. Can be null if wanting to list out every setting.</param>
 		/// <returns>Help information about either the setting or all settings.</returns>
-		public static IResult GetHelp<T>(this SettingParserBase<T> parser, string name) where T : ISettingMetadata
+		public static IResult GetHelp(this ISettingParser parser, string name)
 		{
 			if (string.IsNullOrWhiteSpace(name))
 			{
-				var values = parser.Select(x => x.Names.Count() < 2 ? x.MainName : $"{x.MainName} ({string.Join(", ", x.Names.Skip(1))})");
-				return Result.FromSuccess($"All Settings:{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", values)}");
+				var values = parser.GetSettings().Select(x => x.Names.Count() < 2 ? x.MainName : $"{x.MainName} ({string.Join(", ", x.Names.Skip(1))})");
+				return new HelpResult($"All Settings:{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", values)}");
 			}
 			return parser.TryGetSetting(name, PrefixState.NotPrefixed, out var setting)
-				? Result.FromSuccess(setting.Information)
+				? new HelpResult(setting.Information)
 				: Result.FromError($"'{name}' is not a valid setting.");
 		}
 		/// <summary>
