@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using AdvorangesSettingParser.Interfaces;
-using AdvorangesSettingParser.Utils;
-using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Implementation.Static
 {

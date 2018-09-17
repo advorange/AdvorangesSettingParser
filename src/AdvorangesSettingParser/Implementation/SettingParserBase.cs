@@ -23,6 +23,8 @@ namespace AdvorangesSettingParser.Implementation
 		/// <inheritdoc />
 		public IEnumerable<string> Prefixes { get; }
 		/// <inheritdoc />
+		public bool ThrowQuoteError { get; set; }
+		/// <inheritdoc />
 		public bool IsReadOnly => false;
 		/// <inheritdoc />
 		public int Count => SettingMap.Count;
@@ -49,11 +51,12 @@ namespace AdvorangesSettingParser.Implementation
 		/// Returns a dictionary of names and their values. Names are only counted if they begin with a passed in prefix.
 		/// </summary>
 		/// <param name="prefixes"></param>
+		/// <param name="throwQuoteError">Whether to throw if there are mismatched quotes after parsing.</param>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static IEnumerable<(string Setting, string Args)> Parse(IEnumerable<string> prefixes, ParseArgs input)
+		public static IEnumerable<(string Setting, string Args)> Parse(IEnumerable<string> prefixes, bool throwQuoteError, ParseArgs input)
 		{
-			return CreateArgMap(input, (string s, out string result) =>
+			return CreateArgMap(input, throwQuoteError, (string s, out string result) =>
 			{
 				foreach (var prefix in prefixes)
 				{
@@ -73,9 +76,13 @@ namespace AdvorangesSettingParser.Implementation
 		/// </summary>
 		/// <typeparam name="TValue"></typeparam>
 		/// <param name="args"></param>
+		/// <param name="throwQuoteError">Whether to throw if there are mismatched quotes after parsing.</param>
 		/// <param name="tryParser"></param>
 		/// <returns></returns>
-		public static IEnumerable<(TValue Setting, string Args)> CreateArgMap<TValue>(ParseArgs args, TryParseDelegate<TValue> tryParser)
+		public static IEnumerable<(TValue Setting, string Args)> CreateArgMap<TValue>(
+			ParseArgs args,
+			bool throwQuoteError,
+			TryParseDelegate<TValue> tryParser)
 		{
 			string AddArgs(ref string current, string n)
 				=> current += current != null ? $" {n}" : n;
@@ -125,6 +132,10 @@ namespace AdvorangesSettingParser.Implementation
 			if (currentSetting != default || currentArgs != null)
 			{
 				yield return (currentSetting, currentArgs);
+			}
+			if (quoteDeepness > 0 && throwQuoteError)
+			{
+				throw new InvalidOperationException("Some quotes were not closed correctly and messed up the parsing.");
 			}
 		}
 		private static (bool Start, bool End, string Value) TrimSingle(string s, IEnumerable<char> quoteChars)
@@ -223,7 +234,10 @@ namespace AdvorangesSettingParser.Implementation
 			var successes = new List<IResult>();
 			var errors = new List<IResult>();
 			var help = new List<HelpResult>();
-			var argMap = CreateArgMap(input, (string s, out T result) => TryGetSetting(s, PrefixState.Required, out result));
+			var argMap = CreateArgMap(input, ThrowQuoteError, (string s, out T result) =>
+			{
+				return TryGetSetting(s, PrefixState.Required, out result);
+			});
 			foreach (var (Setting, Args) in argMap)
 			{
 				if (Setting == null)

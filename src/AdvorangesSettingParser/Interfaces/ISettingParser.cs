@@ -12,6 +12,10 @@ namespace AdvorangesSettingParser.Interfaces
 		/// The prefixes of this parser.
 		/// </summary>
 		IEnumerable<string> Prefixes { get; }
+		/// <summary>
+		/// Whether to throw an exception if there is a quote mismatch.
+		/// </summary>
+		bool ThrowQuoteError { get; set; }
 
 		/// <summary>
 		/// The settings of this parser.
