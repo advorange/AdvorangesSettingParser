@@ -5,9 +5,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using AdvorangesSettingParser.Implementation;
+using AdvorangesSettingParser.Implementation.Static;
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Results;
-using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Utils
 {
@@ -197,5 +197,15 @@ namespace AdvorangesSettingParser.Utils
 		/// <returns></returns>
 		public static ISettingParserResult Parse<T>(this StaticSettingParserRegistry registry, T source, ParseArgs args, bool parsableFirst = true)
 			=> registry.GetSettingParser(source).Parse(source, args);
+		/// <summary>
+		/// Registers both the static setting parser and a try parser for it.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="parser"></param>
+		public static void Register<T>(this StaticSettingParser<T> parser) where T : new()
+		{
+			StaticSettingParserRegistry.Instance.Register(parser);
+			TryParserRegistry.Instance.Register<T>(TryParseUtils.TryParseStaticSetting);
+		}
 	}
 }

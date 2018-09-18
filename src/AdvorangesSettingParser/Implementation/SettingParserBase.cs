@@ -101,7 +101,8 @@ namespace AdvorangesSettingParser.Implementation
 			var quoteDeepness = 0;
 			for (int i = 0; i < args.Length; ++i)
 			{
-				var (StartsWithQuotes, EndsWithQuotes, Value) = TrimSingle(args[i], ParseArgs.DefaultQuotes);
+				var fullCurrentValue = args[i];
+				var (StartsWithQuotes, EndsWithQuotes, Value) = TrimSingle(fullCurrentValue, ParseArgs.QuoteChars);
 
 				if (StartsWithQuotes) { ++quoteDeepness; }
 				if (EndsWithQuotes) { --quoteDeepness; }
@@ -112,7 +113,10 @@ namespace AdvorangesSettingParser.Implementation
 					//We can't return Value directly because if there were other quote deepness args we need to count those.
 					if (!tryParser(Value, out var setting))
 					{
-						yield return (currentSetting, AddArgs(ref currentArgs, Value));
+						//Trim quotes off the end of a setting value since they're not needed to group anything together anymore
+						//And they just complicate future parsing
+						var settingValue = TrimSingle(AddArgs(ref currentArgs, fullCurrentValue), ParseArgs.QuoteChars).Value;
+						yield return (currentSetting, settingValue);
 					}
 					//When this is a setting we only check if there's a setting from the last iteration
 					//If there is, we send that one because there's a chance it could be a parameterless setting
@@ -126,12 +130,12 @@ namespace AdvorangesSettingParser.Implementation
 				}
 
 				//If inside any quotes at all, keep adding until we run out of args
-				AddArgs(ref currentArgs, Value);
+				AddArgs(ref currentArgs, fullCurrentValue);
 			}
 			//Return any leftover parts which haven't been returned yet
 			if (currentSetting != default || currentArgs != null)
 			{
-				yield return (currentSetting, currentArgs);
+				yield return (currentSetting, TrimSingle(currentArgs, ParseArgs.QuoteChars).Value);
 			}
 			if (quoteDeepness > 0 && throwQuoteError)
 			{

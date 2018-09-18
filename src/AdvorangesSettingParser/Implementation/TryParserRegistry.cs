@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Implementation
@@ -41,7 +42,7 @@ namespace AdvorangesSettingParser.Implementation
 			RegisterNullable(new TryParseDelegate<double>(double.TryParse));
 			RegisterNullable(new TryParseDelegate<bool>(bool.TryParse));
 			RegisterNullable(new TryParseDelegate<decimal>(decimal.TryParse));
-			Register(new TryParseDelegate<string>(StringTryParse));
+			Register(new TryParseDelegate<string>((string s, out string result) => { result = s; return true; }));
 		}
 
 		/// <summary>
@@ -116,28 +117,10 @@ namespace AdvorangesSettingParser.Implementation
 			}
 			if (typeof(T).IsEnum)
 			{
-				var newParser = new TryParseDelegate<T>(EnumTryParse);
+				var newParser = new TryParseDelegate<T>(TryParseUtils.TryParseEnum);
 				Register(newParser);
 				value = newParser;
 				return true;
-			}
-			value = default;
-			return false;
-		}
-		private static bool StringTryParse(string s, out string value)
-		{
-			value = s;
-			return true;
-		}
-		private static bool EnumTryParse<T>(string s, out T value)
-		{
-			foreach (var name in Enum.GetNames(typeof(T)))
-			{
-				if (name.CaseInsEquals(s))
-				{
-					value = (T)Enum.Parse(typeof(T), s, true);
-					return true;
-				}
 			}
 			value = default;
 			return false;

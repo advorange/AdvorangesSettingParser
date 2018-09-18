@@ -52,6 +52,8 @@ namespace AdvorangesSettingParser.Implementation
 		/// <inheritdoc />
 		public bool IsHelp { get; }
 		/// <inheritdoc />
+		public bool UnescapeBeforeSetting { get; set; } = typeof(TValue) == typeof(string);
+		/// <inheritdoc />
 		public IEnumerable<string> Names { get; }
 		/// <inheritdoc />
 		public string MainName { get; }
@@ -131,7 +133,8 @@ namespace AdvorangesSettingParser.Implementation
 		/// <returns></returns>
 		protected virtual IResult TrySetValue(string value, ITrySetValueContext context, Action<TValue> setter)
 		{
-			var convertResult = this.TryConvertValue(value, out var result);
+			var args = UnescapeBeforeSetting ? value.Replace("\\\"", "\"") : value;
+			var convertResult = this.TryConvertValue(args, out var result);
 			if (!convertResult.IsSuccess)
 			{
 				return convertResult;

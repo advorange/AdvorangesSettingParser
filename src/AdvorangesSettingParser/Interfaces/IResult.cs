@@ -1,7 +1,7 @@
 ﻿namespace AdvorangesSettingParser.Interfaces
 {
 	/// <summary>
-	/// Indicates 
+	/// Indicates either the success or failure of something
 	/// </summary>
 	public interface IResult
 	{

@@ -19,7 +19,7 @@ namespace AdvorangesSettingParser.Interfaces
 		/// <summary>
 		/// String indicating what this setting does.
 		/// </summary>
-		string Description { get; set; }
+		string Description { get; }
 		/// <summary>
 		/// String with information about the setting.
 		/// </summary>
@@ -28,19 +28,23 @@ namespace AdvorangesSettingParser.Interfaces
 		/// Indicates the setting is a boolean which only requires an attempt at parsing it for it to switch its value.
 		/// The passed in string will either be <see cref="bool.TrueString"/> or <see cref="bool.FalseString"/>.
 		/// </summary>
-		bool IsFlag { get; set; }
+		bool IsFlag { get; }
 		/// <summary>
 		/// Indicates the argument is optional.
 		/// </summary>
-		bool IsOptional { get; set; }
+		bool IsOptional { get; }
 		/// <summary>
 		/// Indicates that the setting cannot be null.
 		/// </summary>
-		bool CannotBeNull { get; set; }
+		bool CannotBeNull { get; }
 		/// <summary>
 		/// Indicates whether or not the setting has been set yet.
 		/// </summary>
 		bool HasBeenSet { get; }
+		/// <summary>
+		/// Whether to unescape the quotes in the supplied string before setting it.
+		/// </summary>
+		bool UnescapeBeforeSetting { get; }
 		/// <summary>
 		/// The type of object this setting is targeting directly.
 		/// For example, if the property to modify is <see cref="ICollection{T}"/> this would be that type.
