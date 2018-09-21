@@ -10,6 +10,8 @@ namespace AdvorangesSettingParser.Implementation
 	/// </summary>
 	public class ParseArgs
 	{
+		//TODO: allow specifying which quote characters to use easier (update regex when updating quote chars)
+		//Idk how to write the regex to parse correctly when more than 1 quote char is specified though.
 		/// <summary>
 		/// The characters to use for quotes.
 		/// </summary>
@@ -49,25 +51,35 @@ namespace AdvorangesSettingParser.Implementation
 		public string this[int i]
 		{
 			get => Arguments[i];
-			set => Arguments[i] = value;
 		}
 
 		/// <summary>
-		/// Splits the input like command line and uses those as the arguments.
+		/// Parses a <see cref="ParseArgs"/> from the passed in string or throws an exception.
 		/// </summary>
 		/// <param name="input"></param>
-		public static implicit operator ParseArgs(string input)
+		/// <returns></returns>
+		public static ParseArgs Parse(string input)
+			=> TryParse(input, out var result) ? result : throw new ArgumentException("There is a quote mismatch.");
+		/// <summary>
+		/// Attempts to parse a <see cref="ParseArgs"/> from the passed in string.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <param name="result"></param>
+		/// <returns></returns>
+		public static bool TryParse(string input, out ParseArgs result)
 		{
 			var startIndexes = GetIndexes(StartRegex.Matches(input)).ToArray();
 			var endIndexes = GetIndexes(EndRegex.Matches(input)).ToArray();
 			if (startIndexes.Length != endIndexes.Length)
 			{
-				throw new ArgumentException("There is a quote mismatch.");
+				result = null;
+				return false;
 			}
 			//No quotes means just return splitting on space
 			if (startIndexes.Length == 0)
 			{
-				return new ParseArgs(input.Split(' '));
+				result = new ParseArgs(input.Split(' '));
+				return true;
 			}
 
 			var args = new List<string>();
@@ -119,8 +131,16 @@ namespace AdvorangesSettingParser.Implementation
 			{
 				args.AddRange(input.Substring(maxEnd + 1).Split(' '));
 			}
-			return new ParseArgs(args);
+			result = new ParseArgs(args);
+			return true;
 		}
+
+		/// <summary>
+		/// Splits the input like command line and uses those as the arguments.
+		/// </summary>
+		/// <param name="input"></param>
+		public static implicit operator ParseArgs(string input)
+			=> Parse(input);
 		/// <summary>
 		/// Creates the arguments from the passed in array.
 		/// </summary>

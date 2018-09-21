@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesUtils;
 
@@ -12,7 +11,7 @@ namespace AdvorangesSettingParser.Utils
 	public static class TryParseUtils
 	{
 		/// <summary>
-		/// Try parser for any static setting parser registered type.
+		/// Attempts to parse the supplied arguments into the specified class through a parser registered in <see cref="StaticSettingParserRegistry"/>.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="s"></param>
@@ -20,10 +19,18 @@ namespace AdvorangesSettingParser.Utils
 		/// <returns></returns>
 		public static bool TryParseStaticSetting<T>(string s, out T result) where T : new()
 		{
-			result = new T();
+			if (!ParseArgs.TryParse(s, out var args))
+			{
+				result = default;
+				return false;
+			}
+
+			var instance = new T();
 			var parser = StaticSettingParserRegistry.Instance.Retrieve<T>();
-			var response = parser.Parse(result, s);
-			return !response.Errors.Any() && !response.UnusedParts.Any() && parser.AreAllSet();
+			var response = parser.Parse(instance, args);
+			var isSuccess = response.IsSuccess && parser.AreAllSet();
+			result = isSuccess ? instance : default;
+			return isSuccess;
 		}
 		/// <summary>
 		/// Returns true if this directory has a valid name, returns false if not.
@@ -82,5 +89,33 @@ namespace AdvorangesSettingParser.Utils
 			value = default;
 			return false;
 		}
+		/// <summary>
+		/// Attempts to parse an absolue url.
+		/// </summary>
+		/// <param name="s"></param>
+		/// <param name="result"></param>
+		/// <returns></returns>
+		public static bool TryParseUri(string s, out Uri result)
+			=> Uri.TryCreate(s, UriKind.Absolute, out result);
+		/// <summary>
+		/// Acts as an empty <see cref="TryParseDelegate{T}"/> always returning true and the default value.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		public static bool TryParseEmpty<T>(string s, out T value)
+		{
+			value = default;
+			return true;
+		}
+		/// <summary>
+		/// Functionally the exact same as <see cref="TryParseEmpty{T}(string, out T)"/> except this leaves a warning to actually implement it.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="s"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		[Obsolete("This try parser is only temporary and should have a valid implementation supplied at some point.")]
+		public static bool TryParseTemporary<T>(string s, out T value)
+			=> TryParseEmpty(s, out value);
 	}
 }
