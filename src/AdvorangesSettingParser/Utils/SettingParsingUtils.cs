@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using AdvorangesSettingParser.Implementation;
+using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesSettingParser.Implementation.Static;
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Results;
@@ -21,7 +22,7 @@ namespace AdvorangesSettingParser.Utils
 		/// </summary>
 		/// <param name="settings"></param>
 		/// <returns>A description of what settings still need to be set.</returns>
-		public static string FormatNeededSettings<T>(IEnumerable<T> settings) where T : ISettingMetadata
+		public static string FormatNeededSettings<T>(this IEnumerable<T> settings) where T : ISettingMetadata
 		{
 			if (!settings.Any())
 			{
@@ -34,6 +35,22 @@ namespace AdvorangesSettingParser.Utils
 			}
 			return sb.ToString().Trim() + Environment.NewLine;
 		}
+		/// <summary>
+		/// Returns true if there are 0 needed settings.
+		/// </summary>
+		/// <param name="parser"></param>
+		/// <returns></returns>
+		public static bool AreAllSet(this SettingParser parser)
+			=> parser.GetNeededSettings().Count() == 0;
+		/// <summary>
+		/// Returns true if there are 0 needed settings.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="parser"></param>
+		/// <param name="source"></param>
+		/// <returns></returns>
+		public static bool AreAllSet<T>(this StaticSettingParser<T> parser, T source) where T : class
+			=> parser.GetNeededSettings(source).Count() == 0;
 		/// <summary>
 		/// Gets the member expression from <paramref name="expression"/>.
 		/// </summary>

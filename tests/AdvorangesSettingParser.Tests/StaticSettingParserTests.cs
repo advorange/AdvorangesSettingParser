@@ -96,7 +96,13 @@ namespace AdvorangesSettingParser.Tests
 			{
 				++GCCount;
 			}
+
+			//In release the variable outside the action can be GC'd before it would be in debug.
+#if DEBUG
 			Assert.AreEqual(1, GCCount);
+#else
+			Assert.AreEqual(0, GCCount);
+#endif
 		}
 	}
 }
