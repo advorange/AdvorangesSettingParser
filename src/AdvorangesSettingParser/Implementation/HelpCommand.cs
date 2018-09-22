@@ -1,4 +1,7 @@
-﻿using AdvorangesSettingParser.Interfaces;
+﻿using System;
+using System.Linq;
+using AdvorangesSettingParser.Interfaces;
+using AdvorangesSettingParser.Results;
 using AdvorangesSettingParser.Utils;
 
 namespace AdvorangesSettingParser.Implementation
@@ -26,6 +29,24 @@ namespace AdvorangesSettingParser.Implementation
 		/// </summary>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		public IResult GetHelp(string args) => Parent.GetHelp(args);
+		public IResult GetHelp(string args)
+			=> GetHelp(Parent, args);
+		/// <summary>
+		/// Returns information either about the settings in general, or the specified setting.
+		/// </summary>
+		/// <param name="parser"></param>
+		/// <param name="name">The setting to target. Can be null if wanting to list out every setting.</param>
+		/// <returns>Help information about either the setting or all settings.</returns>
+		public static IResult GetHelp(ISettingParser parser, string name)
+		{
+			if (string.IsNullOrWhiteSpace(name))
+			{
+				var values = parser.GetSettings().Select(x => x.Names.Count() < 2 ? x.MainName : $"{x.MainName} ({string.Join(", ", x.Names.Skip(1))})");
+				return new HelpResult($"All Settings:{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", values)}");
+			}
+			return parser.TryGetSetting(name, PrefixState.NotPrefixed, out var setting)
+				? new HelpResult(setting.Information)
+				: Result.FromError($"'{name}' is not a valid setting.");
+		}
 	}
 }

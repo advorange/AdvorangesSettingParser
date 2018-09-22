@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Instance;
+using AdvorangesSettingParser.Implementation.Static;
+using AdvorangesSettingParser.Interfaces;
+using AdvorangesSettingParser.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdvorangesSettingParser.Tests
@@ -10,6 +13,14 @@ namespace AdvorangesSettingParser.Tests
 	[TestClass]
 	public class CollectionSettingTests
 	{
+		static CollectionSettingTests()
+		{
+			new StaticSettingParser<Instance>()
+			{
+				new StaticSetting<Instance, int>(x => x.Cat),
+			}.Register();
+		}
+
 		private readonly TestClass TestClass;
 		private readonly SettingParser SettingParser;
 		private readonly string Prefix;
@@ -114,5 +125,10 @@ namespace AdvorangesSettingParser.Tests
 			var result = SettingParser.Parse($@"{str} ""{CMAction.Remove} asdflkj""");
 			Assert.AreEqual(1, result.Errors.Count());
 		}
+	}
+
+	public sealed class Instance
+	{
+		public int Cat { get; set; }
 	}
 }

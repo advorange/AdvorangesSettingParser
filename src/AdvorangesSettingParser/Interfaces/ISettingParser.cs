@@ -44,5 +44,11 @@ namespace AdvorangesSettingParser.Interfaces
 		/// <param name="input"></param>
 		/// <returns></returns>
 		ISettingParserResult Parse(object source, ParseArgs input);
+		/// <summary>
+		/// <paramref name="source"/> is required if this is a static setting parser, otherwise it is ignored.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <returns></returns>
+		IEnumerable<ISettingMetadata> GetNeededSettings(object source);
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesUtils;
 
@@ -17,7 +18,7 @@ namespace AdvorangesSettingParser.Utils
 		/// <param name="s"></param>
 		/// <param name="result"></param>
 		/// <returns></returns>
-		public static bool TryParseStaticSetting<T>(string s, out T result) where T : new()
+		public static bool TryParseStaticSetting<T>(string s, out T result) where T : class, new()
 		{
 			if (!ParseArgs.TryParse(s, out var args))
 			{
@@ -28,7 +29,7 @@ namespace AdvorangesSettingParser.Utils
 			var instance = new T();
 			var parser = StaticSettingParserRegistry.Instance.Retrieve<T>();
 			var response = parser.Parse(instance, args);
-			var isSuccess = response.IsSuccess && parser.AreAllSet();
+			var isSuccess = response.IsSuccess && !parser.GetNeededSettings(instance).Any();
 			result = isSuccess ? instance : default;
 			return isSuccess;
 		}

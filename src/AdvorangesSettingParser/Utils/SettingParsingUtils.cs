@@ -19,53 +19,21 @@ namespace AdvorangesSettingParser.Utils
 		/// <summary>
 		/// Formats a string describing what settings still need to be set.
 		/// </summary>
-		/// <param name="settings">The parser.</param>
+		/// <param name="settings"></param>
 		/// <returns>A description of what settings still need to be set.</returns>
-		public static string FormatNeededSettings<T>(this IEnumerable<T> settings) where T : ISettingMetadata
+		public static string FormatNeededSettings<T>(IEnumerable<T> settings) where T : ISettingMetadata
 		{
-			var unsetArguments = settings.GetNeededSettings();
-			if (!unsetArguments.Any())
+			if (!settings.Any())
 			{
 				return $"Every setting which is necessary has been set.";
 			}
 			var sb = new StringBuilder("The following settings need to be set:" + Environment.NewLine);
-			foreach (var setting in unsetArguments)
+			foreach (var setting in settings)
 			{
 				sb.AppendLine($"\t{setting.ToString()}");
 			}
 			return sb.ToString().Trim() + Environment.NewLine;
 		}
-		/// <summary>
-		/// Returns information either about the settings in general, or the specified setting.
-		/// </summary>
-		/// <param name="parser"></param>
-		/// <param name="name">The setting to target. Can be null if wanting to list out every setting.</param>
-		/// <returns>Help information about either the setting or all settings.</returns>
-		public static IResult GetHelp(this ISettingParser parser, string name)
-		{
-			if (string.IsNullOrWhiteSpace(name))
-			{
-				var values = parser.GetSettings().Select(x => x.Names.Count() < 2 ? x.MainName : $"{x.MainName} ({string.Join(", ", x.Names.Skip(1))})");
-				return new HelpResult($"All Settings:{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", values)}");
-			}
-			return parser.TryGetSetting(name, PrefixState.NotPrefixed, out var setting)
-				? new HelpResult(setting.Information)
-				: Result.FromError($"'{name}' is not a valid setting.");
-		}
-		/// <summary>
-		/// Returns settings which have not been set and are not optional.
-		/// </summary>
-		/// <param name="settings">The parser.</param>
-		/// <returns>The settings which still need to be set.</returns>
-		public static IEnumerable<T> GetNeededSettings<T>(this IEnumerable<T> settings) where T : ISettingMetadata
-			=> settings.Where(x => !(x.HasBeenSet || x.IsOptional));
-		/// <summary>
-		/// Returns true if every setting is either set or optional.
-		/// </summary>
-		/// <param name="settings">The parser.</param>
-		/// <returns>Whether every setting has been set.</returns>
-		public static bool AreAllSet<T>(this IEnumerable<T> settings) where T : ISettingMetadata
-			=> settings.All(x => x.HasBeenSet || x.IsOptional);
 		/// <summary>
 		/// Gets the member expression from <paramref name="expression"/>.
 		/// </summary>
@@ -160,7 +128,7 @@ namespace AdvorangesSettingParser.Utils
 		/// <param name="source"></param>
 		/// <param name="parsableFirst"></param>
 		/// <returns></returns>
-		public static ISettingParser GetSettingParser<T>(this StaticSettingParserRegistry registry, T source, bool parsableFirst = true)
+		public static ISettingParser GetSettingParser<T>(this StaticSettingParserRegistry registry, T source, bool parsableFirst = true) where T : class
 		{
 			if (parsableFirst)
 			{
@@ -195,17 +163,18 @@ namespace AdvorangesSettingParser.Utils
 		/// <param name="args"></param>
 		/// <param name="parsableFirst">Whether to check for the object being parsable first before trying to get the registered setting parser.</param>
 		/// <returns></returns>
-		public static ISettingParserResult Parse<T>(this StaticSettingParserRegistry registry, T source, ParseArgs args, bool parsableFirst = true)
+		public static ISettingParserResult Parse<T>(this StaticSettingParserRegistry registry, T source, ParseArgs args, bool parsableFirst = true) where T : class
 			=> registry.GetSettingParser(source).Parse(source, args);
 		/// <summary>
-		/// Registers both the static setting parser and a try parser for it.
+		/// Registers both the static setting parser and a try parser for it. Also freezes the parser making it unmodifiable.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="parser"></param>
-		public static void Register<T>(this StaticSettingParser<T> parser) where T : new()
+		public static void Register<T>(this StaticSettingParser<T> parser) where T : class, new()
 		{
 			StaticSettingParserRegistry.Instance.Register(parser);
 			TryParserRegistry.Instance.Register<T>(TryParseUtils.TryParseStaticSetting);
+			parser.Freeze();
 		}
 	}
 }

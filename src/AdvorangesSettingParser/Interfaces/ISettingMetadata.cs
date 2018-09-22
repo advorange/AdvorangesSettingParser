@@ -38,10 +38,6 @@ namespace AdvorangesSettingParser.Interfaces
 		/// </summary>
 		bool CannotBeNull { get; }
 		/// <summary>
-		/// Indicates whether or not the setting has been set yet.
-		/// </summary>
-		bool HasBeenSet { get; }
-		/// <summary>
 		/// Whether to unescape the quotes in the supplied string before setting it.
 		/// </summary>
 		bool UnescapeBeforeSetting { get; }

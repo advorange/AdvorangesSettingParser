@@ -46,56 +46,56 @@ namespace AdvorangesSettingParser.Tests
 		[TestMethod]
 		public void BasicParsing_Test()
 		{
-			BasicParsing(SettingParser, (setting, value) => setting.TrySetValue(value), Instance);
+			BasicParsing(SettingParser, Instance);
 			var newClass = new TestClass();
-			BasicParsing(StaticSettingParser, (setting, value) => setting.TrySetValue(newClass, value), newClass);
+			BasicParsing(StaticSettingParser, newClass);
 		}
 		[TestMethod]
 		public void FlagParsing_Test()
 		{
-			FlagParsing(SettingParser, (setting, value) => setting.TrySetValue(value), Instance);
+			FlagParsing(SettingParser, Instance);
 			var newClass = new TestClass();
-			FlagParsing(StaticSettingParser, (setting, value) => setting.TrySetValue(newClass, value), newClass);
+			FlagParsing(StaticSettingParser, newClass);
 		}
 		[TestMethod]
 		public void ComplicatedParsing_Test()
 		{
-			ComplicatedParsing(SettingParser, (setting, value) => setting.TrySetValue(value), Instance);
+			ComplicatedParsing(SettingParser, Instance);
 			var newClass = new TestClass();
-			ComplicatedParsing(StaticSettingParser, (setting, value) => setting.TrySetValue(newClass, value), newClass);
+			ComplicatedParsing(StaticSettingParser, newClass);
 		}
 		[TestMethod]
 		public void CollectionParsing_Test()
 		{
-			CollectionParsing(SettingParser, (setting, value) => setting.TrySetValue(value), Instance);
+			CollectionParsing(SettingParser, Instance);
 			var newClass = new TestClass();
-			CollectionParsing(StaticSettingParser, (setting, value) => setting.TrySetValue(newClass, value), newClass);
+			CollectionParsing(StaticSettingParser, newClass);
 		}
-		private static void BasicParsing<T>(SettingParserBase<T> parser, Func<T, string, IResult> setter, TestClass source) where T : ISettingMetadata
+		private static void BasicParsing(ISettingParser parser, TestClass source)
 		{
 			var prefix = parser.Prefixes.First();
-			parser.Parse($"{prefix}{nameof(TestClass.StringValue)} StringValueTest", setter);
+			parser.Parse(source, $"{prefix}{nameof(TestClass.StringValue)} StringValueTest");
 			Assert.AreEqual("StringValueTest", source.StringValue);
-			parser.Parse($"{prefix}{nameof(TestClass.IntValue)} 1", setter);
+			parser.Parse(source, $"{prefix}{nameof(TestClass.IntValue)} 1");
 			Assert.AreEqual(1, source.IntValue);
-			parser.Parse($"{prefix}{nameof(TestClass.BoolValue)} true", setter);
+			parser.Parse(source, $"{prefix}{nameof(TestClass.BoolValue)} true");
 			Assert.AreEqual(true, source.BoolValue);
 
-			parser.Parse($"{prefix}{nameof(TestClass.UlongValue)} 18446744073709551615", setter);
+			parser.Parse(source, $"{prefix}{nameof(TestClass.UlongValue)} 18446744073709551615");
 			Assert.AreEqual(ulong.MaxValue, source.UlongValue);
-			parser.Parse($"{prefix}{nameof(TestClass.DateTimeValue)} 05/06/2018", setter);
+			parser.Parse(source, $"{prefix}{nameof(TestClass.DateTimeValue)} 05/06/2018");
 			Assert.AreEqual(new DateTime(2018, 5, 6), source.DateTimeValue);
 		}
-		private static void FlagParsing<T>(SettingParserBase<T> parser, Func<T, string, IResult> setter, TestClass source) where T : ISettingMetadata
+		private static void FlagParsing(ISettingParser parser, TestClass source)
 		{
 			var prefix = parser.Prefixes.First();
 			Assert.AreEqual(false, source.FlagValue);
-			parser.Parse($"{prefix}{nameof(TestClass.FlagValue)}", setter);
+			parser.Parse(source, $"{prefix}{nameof(TestClass.FlagValue)}");
 			Assert.AreEqual(true, source.FlagValue);
-			parser.Parse($"{prefix}{nameof(TestClass.FlagValue)} false", setter);
+			parser.Parse(source, $"{prefix}{nameof(TestClass.FlagValue)} false");
 			Assert.AreEqual(false, source.FlagValue);
 		}
-		private static void ComplicatedParsing<T>(SettingParserBase<T> parser, Func<T, string, IResult> setter, TestClass source) where T : ISettingMetadata
+		private static void ComplicatedParsing(ISettingParser parser, TestClass source)
 		{
 			var testStr = "Space \"Double deep quote\" Test";
 			var prefix = parser.Prefixes.First();
@@ -105,7 +105,7 @@ namespace AdvorangesSettingParser.Tests
 				$"{prefix}{nameof(TestClass.UlongValue)} asdf " +
 				$"{prefix}help {nameof(TestClass.FlagValue2)} " +
 				$"extra";
-			var result = parser.Parse(args, setter);
+			var result = parser.Parse(source, args);
 			Assert.AreEqual(3, result.Successes.Count());
 			Assert.AreEqual(1, result.Errors.Count());
 			Assert.AreEqual(1, result.UnusedParts.Count());
@@ -115,11 +115,10 @@ namespace AdvorangesSettingParser.Tests
 			Assert.AreEqual(true, source.BoolValue);
 			Assert.AreEqual(default(ulong), source.UlongValue);
 		}
-		private static void CollectionParsing<T>(SettingParserBase<T> parser, Func<T, string, IResult> setter, TestClass source) where T : ISettingMetadata
+		private static void CollectionParsing(ISettingParser parser, TestClass source)
 		{
 			var prefix = parser.Prefixes.First();
-			var args = $"{prefix}{nameof(TestClass.CollectionStrings)} CollectionValue";
-			var result = parser.Parse(args, setter);
+			var result = parser.Parse(source, $"{prefix}{nameof(TestClass.CollectionStrings)} CollectionValue");
 			Assert.AreEqual(1, result.Successes.Count());
 			Assert.AreEqual("CollectionValue", source.CollectionStrings.First());
 		}
