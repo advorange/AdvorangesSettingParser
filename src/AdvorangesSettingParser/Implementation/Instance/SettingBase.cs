@@ -13,18 +13,6 @@ namespace AdvorangesSettingParser.Implementation.Instance
 		: SettingMetadataBase<TPropertyValue, TValue>, ISetting<TPropertyValue>, ISetting
 	{
 		/// <summary>
-		/// Sets the default value for this setting.
-		/// This will set the value as soon as this is set, so it can be seen as a different way of calling set value.
-		/// </summary>
-		public TPropertyValue DefaultValue
-		{
-			get => _DefaultValue;
-			set => SetValue(_DefaultValue = value);
-		}
-
-		private TPropertyValue _DefaultValue { get; set; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="SettingBase{TSource, TValue}"/>.
 		/// </summary>
 		/// <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>

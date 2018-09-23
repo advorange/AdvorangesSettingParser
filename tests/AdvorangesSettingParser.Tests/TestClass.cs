@@ -15,13 +15,13 @@ namespace AdvorangesSettingParser.Tests
 		public ulong UlongValue { get; set; }
 		public DateTime DateTimeValue { get; set; }
 
-		public bool BoolFieldValue;
+		public bool BoolFieldValue = false;
 
 		public IEnumerable<string> EnumerableStrings { get; } = Enumerable.Empty<string>();
 		public ICollection<string> CollectionStrings { get; } = new List<string>();
 		public IList<string> ListStrings { get; } = new List<string>();
-		public IList<string> FilledListStrings { get; } = new List<string>();
-		public IList<int> ListInts { get; } = new List<int>();
+		public IList<string> FilledListStrings { get; } = new List<string> { "a", "b", "c", "d" };
+		public IList<int> FilledListInts { get; } = new List<int> { 1, 2, 3 };
 	}
 
 	internal struct TestStruct

@@ -42,12 +42,12 @@ namespace AdvorangesSettingParser.Tests
 				},
 				new CollectionSetting<string>(() => TestClass.FilledListStrings)
 				{
-					DefaultValue = new List<string> { "a", "b", "c", "d" },
+					IsOptional = true,
 					EqualityComparer = StringComparer.OrdinalIgnoreCase,
 				},
-				new CollectionSetting<int>(() => TestClass.ListInts)
+				new CollectionSetting<int>(() => TestClass.FilledListInts)
 				{
-					DefaultValue = new List<int> { 1, 2, 3 },
+					IsOptional = true,
 				}
 			};
 			Prefix = SettingParser.Prefixes.First();
@@ -59,12 +59,12 @@ namespace AdvorangesSettingParser.Tests
 			Assert.AreEqual(0, TestClass.CollectionStrings.Count);
 			Assert.AreEqual(0, TestClass.ListStrings.Count);
 			Assert.AreEqual(4, TestClass.FilledListStrings.Count);
-			Assert.AreEqual(3, TestClass.ListInts.Count);
+			Assert.AreEqual(3, TestClass.FilledListInts.Count);
 		}
 		[TestMethod]
 		public void Modify_Test()
 		{
-			var target = nameof(TestClass.ListInts);
+			var target = nameof(TestClass.FilledListInts);
 			var str = Prefix + target;
 			SettingParser.TryGetSetting(target, PrefixState.NotPrefixed, out var setting);
 			var value = (IList<int>)setting.GetValue();

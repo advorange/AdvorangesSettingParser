@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using AdvorangesSettingParser.Interfaces;
 
 namespace AdvorangesSettingParser.Implementation.Static
@@ -14,17 +15,6 @@ namespace AdvorangesSettingParser.Implementation.Static
 	public abstract class StaticSettingBase<TSource, TPropertyValue, TValue>
 		: SettingMetadataBase<TPropertyValue, TValue>, IStaticSetting<TSource, TPropertyValue>, IStaticSetting<TSource>
 	{
-		/// <summary>
-		/// Sets the default value for this setting;
-		/// </summary>
-		public Func<TPropertyValue> DefaultValueFactory
-		{
-			get => _DefaultValueFactory;
-			set => _DefaultValueFactory = value;
-		}
-
-		private Func<TPropertyValue> _DefaultValueFactory { get; set; }
-
 		/// <summary>
 		/// Creates an instance of <see cref="StaticSettingBase{TSource, TPropertyValue, TValue}"/>.
 		/// </summary>
