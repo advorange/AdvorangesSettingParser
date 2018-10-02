@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Results;
 using AdvorangesSettingParser.Utils;
@@ -60,10 +59,10 @@ namespace AdvorangesSettingParser.Implementation
 			var successes = new List<IResult>();
 			var errors = new List<IResult>();
 			var help = new List<HelpResult>();
-			var argMap = ArgumentMappingUtils.CreateArgMap(input, ThrowQuoteError, (string s, out T result) =>
-			{
-				return TryGetSetting(s, PrefixState.Required, out result);
-			});
+
+			bool tryParser(string s, out T result) => TryGetSetting(s, PrefixState.Required, out result);
+
+			var argMap = ArgumentMappingUtils.CreateArgMap<T>(input, tryParser);
 			foreach (var (Setting, Args) in argMap)
 			{
 				if (Setting == null)
@@ -74,21 +73,17 @@ namespace AdvorangesSettingParser.Implementation
 
 				var args = Setting.IsFlag && Args == null ? bool.TrueString : Args;
 				var response = setter(Setting, args);
-				if (response.IsSuccess)
+				if (response.IsSuccess && response is HelpResult helpResult)
+				{
+					help.Add(helpResult);
+				}
+				else if (response.IsSuccess)
 				{
 					successes.Add(response);
 				}
 				else
 				{
 					errors.Add(response);
-				}
-			}
-			foreach (var success in successes.ToList())
-			{
-				if (success is HelpResult helpResult)
-				{
-					successes.Remove(success);
-					help.Add(helpResult);
 				}
 			}
 			return new SettingParserResult(unusedParts, successes, errors, help);

@@ -1,0 +1,1673 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AdvorangesSettingParser</name>
+    </assembly>
+    <members>
+        <member name="T:AdvorangesSettingParser.Implementation.CollectionModificationContext">
+            <summary>
+            Used in collection settings for determining whether to add or remove.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.CollectionModificationContext.ActionString">
+            <summary>
+            Returns a string for the action.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.CollectionModificationContext.Action">
+            <summary>
+            How to modify the targeted value.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.CollectionModificationContext.MaxRemovalCount">
+            <summary>
+            Limits how many items can be removed when finding existing matching values.
+            </summary>
+            <value></value>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.CMAction">
+            <summary>
+            Instructs how to modify the targeted value in the collection.
+            </summary>
+        </member>
+        <member name="F:AdvorangesSettingParser.Implementation.CMAction.Toggle">
+            <summary>
+            If in list, will remove. If out of list, will add.
+            </summary>
+        </member>
+        <member name="F:AdvorangesSettingParser.Implementation.CMAction.Add">
+            <summary>
+            Add no matter what.
+            </summary>
+        </member>
+        <member name="F:AdvorangesSettingParser.Implementation.CMAction.AddIfMissing">
+            <summary>
+            Will only return success if missing then added.
+            </summary>
+        </member>
+        <member name="F:AdvorangesSettingParser.Implementation.CMAction.Remove">
+            <summary>
+            Removes any matching values.
+            </summary>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.HelpCommand">
+            <summary>
+            How to get help for the commands.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.HelpCommand.#ctor(AdvorangesSettingParser.Interfaces.ISettingParser)">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.HelpCommand"/>.
+            </summary>
+            <param name="parent"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.HelpCommand.GetHelp(System.String)">
+            <summary>
+            Gets a help result for the supplied arguments.
+            </summary>
+            <param name="args"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.HelpCommand.GetHelp(AdvorangesSettingParser.Interfaces.ISettingParser,System.String)">
+            <summary>
+            Returns information either about the settings in general, or the specified setting.
+            </summary>
+            <param name="parser"></param>
+            <param name="name">The setting to target. Can be null if wanting to list out every setting.</param>
+            <returns>Help information about either the setting or all settings.</returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.Instance.CollectionSetting`1">
+            <summary>
+            A generic class for a setting which is a collection, allowing full getter and modification but no real setter capabilities on the target.
+            </summary>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.CollectionSetting`1.#ctor(System.Linq.Expressions.Expression{System.Func{System.Collections.Generic.ICollection{`0}}},System.Collections.Generic.IEnumerable{System.String},AdvorangesSettingParser.TryParseDelegate{`0})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Instance.CollectionSetting`1"/>.
+            </summary>
+            <param name="selector">The targeted value. If this doesn't have a setter it will still work.</param>
+            <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
+            <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type or enum.</param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.CollectionSetting`1.GetValue">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.CollectionSetting`1.ResetValue">
+            <summary>
+            This will invoke the reset value factory then the setter, meaning to clear the list simply have the factory return an empty list.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.CollectionSetting`1.SetValue(System.Collections.Generic.ICollection{`0})">
+            <summary>
+            Clears the source list and adds all the supplied values.
+            Will clear the collection before adding the values, but will not change the reference.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.CollectionSetting`1.TrySetValue(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.CollectionSetting`1.TrySetValue(System.String,AdvorangesSettingParser.Interfaces.ITrySetValueContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.CollectionSetting`1.TrySetValue(System.String,AdvorangesSettingParser.Implementation.CollectionModificationContext)">
+            <summary>
+            Invokes TrySetValue with the correct context type.
+            </summary>
+            <param name="value"></param>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.Instance.Ref`1">
+            <summary>
+            Acts as the ref keyword for multiple types other than fields.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.Instance.Ref`1.Nothing">
+            <summary>
+            Creates a reference to nothing.
+            Setting will do nothing.
+            Getting will return the default value.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.Instance.Ref`1.Name">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.Instance.Ref`1.Setter">
+            <summary>
+            Sets the value.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.Instance.Ref`1.Getter">
+            <summary>
+            Gets the value.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Ref`1.#ctor(System.Runtime.CompilerServices.StrongBox{`0},System.String)">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Instance.Ref`1"/>.
+            </summary>
+            <param name="strongbox">Holds the value.</param>
+            <param name="name">The name of the targeted value.</param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Ref`1.#ctor(System.Linq.Expressions.Expression{System.Func{`0}})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Instance.Ref`1"/>. The targeted value MUST have both a getter and setter and must NOT be in a value type.
+            </summary>
+            <param name="selector">Allows getting and setting the value plus gives the name.</param>
+            <remarks>
+            This cannot be in a value type because unless the struct is local none of the fields will be set on it correctly.
+            This results in a compile time error with <see cref="T:System.Action`1"/> whereas here it's extremely easy to miss and will never throw an exception.
+            </remarks>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Ref`1.#ctor(System.Action{`0},System.Func{`0},System.String)">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Instance.Ref`1"/>.
+            </summary>
+            <param name="setter">Sets the value.</param>
+            <param name="getter">Gets the value.</param>
+            <param name="name">The name of the targeted value.</param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Ref`1.GetValue">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Ref`1.SetValue(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Ref`1.FromStruct(System.Action{`0},System.Func{`0},System.String)">
+            <summary>
+            Creates a <see cref="T:AdvorangesSettingParser.Implementation.Instance.Ref`1"/> from an action and func targeting a something on a struct.
+            THIS WILL ONLY WORK ON LOCAL STRUCTS.
+            </summary>
+            <param name="setter"></param>
+            <param name="getter"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Ref`1.op_Implicit(AdvorangesSettingParser.Implementation.Instance.Ref{`0})~`0">
+            <summary>
+            Converts <see cref="T:AdvorangesSettingParser.Implementation.Instance.Ref`1"/> to its held value.
+            </summary>
+            <param name="instance"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Ref`1.op_Implicit(System.Linq.Expressions.Expression{System.Func{`0}})~AdvorangesSettingParser.Implementation.Instance.Ref{`0}">
+            <summary>
+            Converts an expression into <see cref="T:AdvorangesSettingParser.Implementation.Instance.Ref`1"/>.
+            </summary>
+            <param name="selector"></param>
+            <remarks>Generally useless because lambda expressions default to the non expression value.</remarks>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.Instance.Setting`1">
+            <summary>
+            A generic class for a setting, allowing full getter and setter capabilities on the target.
+            </summary>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Setting`1.#ctor(System.Linq.Expressions.Expression{System.Func{`0}},System.Collections.Generic.IEnumerable{System.String},AdvorangesSettingParser.TryParseDelegate{`0})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Instance.Setting`1"/> with full setter and getter capabilities targeting the supplied value.
+            </summary>
+            <param name="selector">The targeted value. This can be any property/field local/instance/global/static in a class. It NEEDS to have both a getter and setter.</param>
+            <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
+            <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type or enum.</param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Setting`1.#ctor(AdvorangesSettingParser.Interfaces.IRef{`0},System.Collections.Generic.IEnumerable{System.String},AdvorangesSettingParser.TryParseDelegate{`0})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Instance.Setting`1"/> with full setter and getter capabilities targeting the supplied value.
+            </summary>
+            <param name="reference">The targeted value. This can be any property/field local/instance/global/static in a class.</param>
+            <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
+            <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type or enum.</param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Setting`1.GetValue">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Setting`1.ResetValue">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Setting`1.SetValue(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Setting`1.TrySetValue(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.Setting`1.TrySetValue(System.String,AdvorangesSettingParser.Interfaces.ITrySetValueContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.Instance.SettingBase`2">
+            <summary>
+            Base class of an instance setting.
+            Allows easy implementation of either a singular property or a collection property.
+            /// </summary>
+            <typeparam name="TPropertyValue">This can be the same type as <typeparamref name="TValue"/>.</typeparam>
+            <typeparam name="TValue">This can be the same type as <typeparamref name="TPropertyValue"/>.</typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingBase`2.#ctor(System.Collections.Generic.IEnumerable{System.String},AdvorangesSettingParser.TryParseDelegate{`1})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Instance.SettingBase`2"/>.
+            </summary>
+            <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
+            <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type or enum.</param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingBase`2.GetValue">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingBase`2.ResetValue">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingBase`2.SetValue(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingBase`2.TrySetValue(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingBase`2.TrySetValue(System.String,AdvorangesSettingParser.Interfaces.ITrySetValueContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.Instance.SettingParser">
+            <summary>
+            Parses settings and then sets them.
+            This implementation is case-insensitive.
+            </summary>
+            <remarks>Putting a command with the name help or h will overwrite the help command.</remarks>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.Instance.SettingParser.UnsetSettings">
+            <summary>
+            A list of the settings the instance this is registered in has not set which are required.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingParser.#ctor(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Instance.SettingParser"/> with the supplied prefixes.
+            </summary>
+            <param name="prefixes"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingParser.Parse(System.Object,AdvorangesSettingParser.Implementation.ParseArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingParser.GetNeededSettings(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingParser.Parse(AdvorangesSettingParser.Implementation.ParseArgs)">
+            <summary>
+            Parses the arguments into the parent.
+            </summary>
+            <param name="input"></param>
+            <returns>The results of this parsing.</returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Instance.SettingParser.GetNeededSettings">
+            <summary>
+            Returns settings which have not been set and are not optional.
+            </summary>
+            <returns>The settings which still need to be set.</returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.ParseArgs">
+            <summary>
+            Used to remove the need for two seperate methods each time for string and string[].
+            </summary>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.ParseArgs.ValidateQuote">
+            <summary>
+            How to validate a start or end quote.
+            </summary>
+            <param name="previousChar"></param>
+            <param name="currentChar"></param>
+            <param name="nextChar"></param>
+            <returns></returns>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.ParseArgs.Count">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.ParseArgs.StartingQuoteCharacters">
+            <summary>
+            The characters used to start quotes with.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.ParseArgs.EndingQuoteCharacters">
+            <summary>
+            The characters used to end quotes with.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.ParseArgs._Arguments">
+            <summary>
+            The arguments to be used.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.ParseArgs.#ctor(System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.Char},System.Collections.Generic.IEnumerable{System.Char})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.ParseArgs"/> to remove the need for two methods every time string and string[] are interchangeable.
+            </summary>
+            <param name="args"></param>
+            <param name="startingQuotes"></param>
+            <param name="endingQuotes"></param>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.ParseArgs.Item(System.Int32)">
+            <summary>
+            Accessor for the array.
+            </summary>
+            <param name="i"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.ParseArgs.GetEnumerator">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.ParseArgs.Parse(System.String)">
+            <summary>
+            Parses a <see cref="T:AdvorangesSettingParser.Implementation.ParseArgs"/> from the passed in string or throws an exception.
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.ParseArgs.TryParse(System.String,AdvorangesSettingParser.Implementation.ParseArgs@)">
+            <summary>
+            Attempts to parse a <see cref="T:AdvorangesSettingParser.Implementation.ParseArgs"/> using the default quote character ' for beginning and ending quotes.
+            </summary>
+            <param name="input"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.ParseArgs.TryParse(System.String,System.Char[],System.Char[],AdvorangesSettingParser.Implementation.ParseArgs@)">
+            <summary>
+            Attempts to parse a <see cref="T:AdvorangesSettingParser.Implementation.ParseArgs"/> from characters indicating the start of a quote and characters indicating the end of a quote.
+            </summary>
+            <param name="input"></param>
+            <param name="startQuotes"></param>
+            <param name="endQuotes"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.ParseArgs.TryParse(System.String,System.Char[],System.Char[],System.Int32[],System.Int32[],AdvorangesSettingParser.Implementation.ParseArgs@)">
+            <summary>
+            Attempts to parse a <see cref="T:AdvorangesSettingParser.Implementation.ParseArgs"/> from start and end indexes.
+            </summary>
+            <param name="input"></param>
+            <param name="startQuotes"></param>
+            <param name="endQuotes"></param>
+            <param name="startIndexes"></param>
+            <param name="endIndexes"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.ParseArgs.GetIndexes(System.String,System.Char[],System.Boolean,AdvorangesSettingParser.Implementation.ParseArgs.ValidateQuote)">
+            <summary>
+            Gets either start or end indexes from the supplied string using the supplied quotes.
+            </summary>
+            <param name="quotes"></param>
+            <param name="input"></param>
+            <param name="allowEscaping"></param>
+            <param name="valid"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.ParseArgs.op_Implicit(System.String)~AdvorangesSettingParser.Implementation.ParseArgs">
+            <summary>
+            Splits the input like command line and uses those as the arguments.
+            </summary>
+            <param name="input"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.ParseArgs.op_Implicit(AdvorangesSettingParser.Implementation.ParseArgs)~System.String[]">
+            <summary>
+            Returns the array of arguments.
+            </summary>
+            <param name="args"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.SettingMetadataBase`2">
+            <summary>
+            The metadata for the setting and some methods shared by both instance and static settings.
+            </summary>
+            <typeparam name="TPropertyValue"></typeparam>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.Description">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.Information">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.IsFlag">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.IsOptional">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.CannotBeNull">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.HasBeenSet">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.IsHelp">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.UnescapeBeforeSetting">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.Names">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.MainName">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.TargetType">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.ValueType">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.EqualityComparer">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.Parser">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.Validation">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.ResetValueFactory">
+            <summary>
+            Does something with the current value then returns either the modified value or a new value.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.#ctor(System.Collections.Generic.IEnumerable{System.String},AdvorangesSettingParser.TryParseDelegate{`1})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.SettingMetadataBase`2"/>.
+            </summary>
+            <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
+            <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type or enum.</param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.ToString">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.SetValue(`1,System.Action{`1})">
+            <summary>
+            Sets the value after validation and sets HasBeenSet to true;
+            </summary>
+            <param name="value"></param>
+            <param name="setter"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingMetadataBase`2.TrySetValue(System.String,AdvorangesSettingParser.Interfaces.ITrySetValueContext,System.Action{`1})">
+            <summary>
+            Attempts to set the value.
+            </summary>
+            <param name="value"></param>
+            <param name="context"></param>
+            <param name="setter"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.SettingParserBase`1">
+            <summary>
+            Base class for parsing settings.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingParserBase`1.DefaultPrefixes">
+            <summary>
+            The default prefixes used for setting parsing.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingParserBase`1.Prefixes">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingParserBase`1.ThrowQuoteError">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingParserBase`1.IsReadOnly">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingParserBase`1.Count">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingParserBase`1.NameMap">
+            <summary>
+            Maps the names to a Guid.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.SettingParserBase`1.SettingMap">
+            <summary>
+            Maps the Guid from <see cref="P:AdvorangesSettingParser.Implementation.SettingParserBase`1.NameMap"/> to a setting.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.#ctor(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.SettingParserBase`1"/> with the supplied prefixes.
+            </summary>
+            <param name="prefixes"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.Parse(AdvorangesSettingParser.Implementation.ParseArgs,System.Func{`0,System.String,AdvorangesSettingParser.Interfaces.IResult})">
+            <summary>
+            Parses through all the text and then handles any setting.
+            </summary>
+            <param name="input"></param>
+            <param name="setter"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.Parse(System.Object,AdvorangesSettingParser.Implementation.ParseArgs)">
+            <summary>
+            Abstract and protected to handle implementation from an instance and static context.
+            </summary>
+            <param name="source"></param>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.GetNeededSettings(System.Object)">
+            <summary>
+            Abstract and protected to handle implementation from an instance and static context.
+            </summary>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.TryGetSetting(System.String,AdvorangesSettingParser.PrefixState,`0@)">
+            <summary>
+            Attempts to get the setting with the specified name.
+            </summary>
+            <param name="name"></param>
+            <param name="state"></param>
+            <param name="setting"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.GetSetting(System.String,AdvorangesSettingParser.PrefixState)">
+            <summary>
+            Gets the setting with the specified name and throws if it's not found.
+            </summary>
+            <param name="name"></param>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.Freeze">
+            <summary>
+            Removes the ability to modify this collection.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.Add(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.Remove(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.Contains(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.Clear">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.CopyTo(`0[],System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.GetEnumerator">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.SettingParserBase`1.System#Collections#IEnumerable#GetEnumerator">
+            <inheritdoc />
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.StaticSettingParserRegistry">
+            <summary>
+            Registers setting parsers for easy retrieval.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.StaticSettingParserRegistry.Instance">
+            <summary>
+            The singleton instance of this.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.StaticSettingParserRegistry.RegisteredTypes">
+            <summary>
+            The types registered in this instance.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.StaticSettingParserRegistry.Register``1(AdvorangesSettingParser.Implementation.Static.StaticSettingParser{``0})">
+            <summary>
+            Registers the current try parser so it can be used upon request.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="parser"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.StaticSettingParserRegistry.Remove``1">
+            <summary>
+            Removes the try parser for the specified type.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.StaticSettingParserRegistry.Retrieve``1">
+            <summary>
+            Retries the try parser for the spcified type.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.StaticSettingParserRegistry.TryRetrieve``1(AdvorangesSettingParser.Implementation.Static.StaticSettingParser{``0}@)">
+            <summary>
+            Attempts to retrieve the try parser for the specified type.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.Static.StaticCollectionSetting`2">
+            <summary>
+            A generic class for a setting which is a collection, allowing full getter and modification but no real setter capabilities on the target.
+            </summary>
+            <typeparam name="TSource"></typeparam>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticCollectionSetting`2.#ctor(System.Linq.Expressions.Expression{System.Func{`0,System.Collections.Generic.ICollection{`1}}},System.Collections.Generic.IEnumerable{System.String},AdvorangesSettingParser.TryParseDelegate{`1})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Static.StaticCollectionSetting`2"/>.
+            </summary>
+            <param name="selector">The targeted value. If this doesn't have a setter it will still work.</param>
+            <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
+            <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type or enum.</param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticCollectionSetting`2.GetValue(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticCollectionSetting`2.ResetValue(`0)">
+            <summary>
+            This will invoke the reset value factory then the setter, meaning to clear the list simply have the factory return an empty list.
+            </summary>
+            <param name="source"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticCollectionSetting`2.SetValue(`0,System.Collections.Generic.ICollection{`1})">
+            <summary>
+            Clears the source list and adds all the supplied values.
+            Will clear the collection before adding the values, but will not change the reference.
+            </summary>
+            <param name="source"></param>
+            <param name="value"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticCollectionSetting`2.TrySetValue(`0,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticCollectionSetting`2.TrySetValue(`0,System.String,AdvorangesSettingParser.Interfaces.ITrySetValueContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticCollectionSetting`2.TrySetValue(`0,System.String,AdvorangesSettingParser.Implementation.CollectionModificationContext)">
+            <summary>
+            Invokes TrySetValue with the correct context type.
+            </summary>
+            <param name="source"></param>
+            <param name="value"></param>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.Static.StaticSetting`2">
+            <summary>
+            A generic class for a static setting, allowing full getter and setter capabilities on the target with any passed in source.
+            </summary>
+            <typeparam name="TSource"></typeparam>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSetting`2.#ctor(System.Linq.Expressions.Expression{System.Func{`0,`1}},System.Collections.Generic.IEnumerable{System.String},AdvorangesSettingParser.TryParseDelegate{`1})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Static.StaticSetting`2"/> with full setter and getter capabilities targeting the supplied value.
+            </summary>
+            <param name="selector">The targeted value. This can be any property/field local/instance/global/static in a class. It NEEDS to have both a getter and setter.</param>
+            <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
+            <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type or enum.</param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSetting`2.GetValue(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSetting`2.ResetValue(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSetting`2.SetValue(`0,`1)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSetting`2.TrySetValue(`0,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSetting`2.TrySetValue(`0,System.String,AdvorangesSettingParser.Interfaces.ITrySetValueContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.Static.StaticSettingBase`3">
+            <summary>
+            Base class of a static setting.
+            Allows easy implementation of either a singular property or a collection property.
+            </summary>
+            <typeparam name="TSource"></typeparam>
+            <typeparam name="TPropertyValue"></typeparam>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingBase`3.#ctor(System.Collections.Generic.IEnumerable{System.String},AdvorangesSettingParser.TryParseDelegate{`2})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Static.StaticSettingBase`3"/>.
+            </summary>
+            <param name="names">The names to use for this setting. Must supply at least one name. The first name will be designated the main name.</param>
+            <param name="parser">The converter to convert from a string to the value. Can be null if a primitive type or enum.</param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingBase`3.GetValue(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingBase`3.ResetValue(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingBase`3.SetValue(`0,`1)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingBase`3.TrySetValue(`0,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingBase`3.TrySetValue(`0,System.String,AdvorangesSettingParser.Interfaces.ITrySetValueContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.Static.StaticSettingParser`1">
+            <summary>
+            Allows creation of the settings statically, then providing an instance of the target type to fill up.
+            </summary>
+            <typeparam name="TSource"></typeparam>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.Static.StaticSettingParser`1.UnsetSettings">
+            <summary>
+            Keeps a list of any objects parsed and which settings have been set on them.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingParser`1.#ctor(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.Static.StaticSettingParser`1"/> with the supplied prefixes.
+            </summary>
+            <param name="prefixes"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingParser`1.Parse(System.Object,AdvorangesSettingParser.Implementation.ParseArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingParser`1.GetNeededSettings(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingParser`1.Parse(`0,AdvorangesSettingParser.Implementation.ParseArgs)">
+            <summary>
+            Parses the arguments into the supplied instance.
+            </summary>
+            <param name="source"></param>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.Static.StaticSettingParser`1.GetNeededSettings(`0)">
+            <summary>
+            Returns settings which have not been set and are not optional.
+            </summary>
+            <param name="source">The targeted source.</param>
+            <returns>The settings which still need to be set.</returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Implementation.TryParserRegistry">
+            <summary>
+            Registers try parsers for easy retrieval.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.TryParserRegistry.Instance">
+            <summary>
+            The singleton instance of this.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Implementation.TryParserRegistry.RegisteredTypes">
+            <summary>
+            The types registered in this instance.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.TryParserRegistry.#ctor">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Implementation.TryParserRegistry"/> and registers all primitive types.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.TryParserRegistry.Register``1(AdvorangesSettingParser.TryParseDelegate{``0},System.Boolean)">
+            <summary>
+            Registers the current try parser so it can be used upon request.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="tryParser"></param>
+            <param name="forceRegisterNullable">
+            Forces <see cref="M:AdvorangesSettingParser.Implementation.TryParserRegistry.RegisterNullable``1(AdvorangesSettingParser.TryParseDelegate{``0})"/> to be called even if the generic parameters are not met.
+            This uses reflection.
+            </param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.TryParserRegistry.RegisterNullable``1(AdvorangesSettingParser.TryParseDelegate{``0})">
+            <summary>
+            Registers the current try parser and its nullable form so it can be used upon request.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="tryParser"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.TryParserRegistry.Remove``1">
+            <summary>
+            Removes the try parser for the specified type.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.TryParserRegistry.Retrieve``1">
+            <summary>
+            Retries the try parser for the spcified type.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Implementation.TryParserRegistry.TryRetrieve``1(AdvorangesSettingParser.TryParseDelegate{``0}@)">
+            <summary>
+            Attempts to retrieve the try parser for the specified type.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.IParsable">
+            <summary>
+            Indicates this setting can be parsed.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.IParsable.SettingParser">
+            <summary>
+            Specifies how to parse settings into this class.
+            </summary>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.IRef`1">
+            <summary>
+            Acts as the ref keyword for multiple types other than fields.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.IRef`1.Name">
+            <summary>
+            The name of the targeted value.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IRef`1.GetValue">
+            <summary>
+            The current value of the setting.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IRef`1.SetValue(`0)">
+            <summary>
+            Sets the setting directly. This still validates.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.IResult">
+            <summary>
+            Indicates either the success or failure of something
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.IResult.Response">
+            <summary>
+            The response as a string.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.IResult.IsSuccess">
+            <summary>
+            Returns true if the result is a success.
+            </summary>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.IBasicSetting">
+            <summary>
+            Allows attempting to set a value and holds information allowing about how to set the value.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IBasicSetting.ResetValue">
+            <summary>
+            Sets the value back to its default value. This still validates.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IBasicSetting.TrySetValue(System.String)">
+            <summary>
+            Converts the value to the required type and sets the property/field.
+            </summary>
+            <param name="value">The passed in argument to convert.</param>
+            <returns>Whether the value has successfully been set.</returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IBasicSetting.TrySetValue(System.String,AdvorangesSettingParser.Interfaces.ITrySetValueContext)">
+            <summary>
+            Converts the value to the required type and sets the property/field.
+            </summary>
+            <param name="value">The passed in argument to convert.</param>
+            <param name="context">Additional arguments provided.</param>
+            <returns>Whether the value has successfully been set.</returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.ISetting`1">
+            <summary>
+            Allows try setting, regular setting, getting, and resetting the value.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.ISetting`1.GetValue">
+            <summary>
+            The current value of the setting.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.ISetting`1.SetValue(`0)">
+            <summary>
+            Sets the setting directly. This still validates.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.ISetting">
+            <summary>
+            Allows try setting, regular setting, getting, and resetting the value.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.ISetting.GetValue">
+            <summary>
+            The current value of the setting.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.ISetting.SetValue(System.Object)">
+            <summary>
+            Sets the setting directly. This still validates.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.ISettingMetadata">
+            <summary>
+            Information about the setting.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.Names">
+            <summary>
+            The names of this command.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.MainName">
+            <summary>
+            The first value in <see cref="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.Names"/>.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.Description">
+            <summary>
+            String indicating what this setting does.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.Information">
+            <summary>
+            String with information about the setting.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.IsFlag">
+            <summary>
+            Indicates the setting is a boolean which only requires an attempt at parsing it for it to switch its value.
+            The passed in string will either be <see cref="F:System.Boolean.TrueString"/> or <see cref="F:System.Boolean.FalseString"/>.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.IsOptional">
+            <summary>
+            Indicates the argument is optional.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.CannotBeNull">
+            <summary>
+            Indicates that the setting cannot be null.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.UnescapeBeforeSetting">
+            <summary>
+            Whether to unescape the quotes in the supplied string before setting it.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.TargetType">
+            <summary>
+            The type of object this setting is targeting directly.
+            For example, if the property to modify is <see cref="T:System.Collections.Generic.ICollection`1"/> this would be that type.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.ValueType">
+            <summary>
+            The type this setting is trying to convert to.
+            For example, if <see cref="P:AdvorangesSettingParser.Interfaces.ISettingMetadata.TargetType"/> is <see cref="T:System.Collections.Generic.ICollection`1"/> this would be the type parameter.
+            </summary>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.ISettingParser">
+            <summary>
+            Allows for parsing arguments and seeing the metadata of settings.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingParser.Prefixes">
+            <summary>
+            The prefixes of this parser.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingParser.ThrowQuoteError">
+            <summary>
+            Whether to throw an exception if there is a quote mismatch.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.ISettingParser.GetSettings">
+            <summary>
+            The settings of this parser.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.ISettingParser.TryGetSetting(System.String,AdvorangesSettingParser.PrefixState,AdvorangesSettingParser.Interfaces.ISettingMetadata@)">
+            <summary>
+            Attempts to get a setting with the specified name.
+            </summary>
+            <param name="name"></param>
+            <param name="state"></param>
+            <param name="setting"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.ISettingParser.GetSetting(System.String,AdvorangesSettingParser.PrefixState)">
+            <summary>
+            Either gets a setting with the specified name or throws an exception.
+            </summary>
+            <param name="name"></param>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.ISettingParser.Parse(System.Object,AdvorangesSettingParser.Implementation.ParseArgs)">
+            <summary>
+            <paramref name="source"/> is required if this is a static setting parser, otherwise it is ignored.
+            </summary>
+            <param name="source"></param>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.ISettingParser.GetNeededSettings(System.Object)">
+            <summary>
+            <paramref name="source"/> is required if this is a static setting parser, otherwise it is ignored.
+            </summary>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.ISettingParserResult">
+            <summary>
+            Results gotten from parsing.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingParserResult.UnusedParts">
+            <summary>
+            Parts that were not used to set something.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingParserResult.Successes">
+            <summary>
+            All successfully set settings.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingParserResult.Errors">
+            <summary>
+            Any errors which occurred when setting something.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.ISettingParserResult.Help">
+            <summary>
+            Result gotten via the help setting.
+            </summary>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.IBasicStaticSetting`1">
+            <summary>
+            Allows attempting to set a value and holds information allowing about how to set the value.
+            </summary>
+            <typeparam name="TSource"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IBasicStaticSetting`1.ResetValue(`0)">
+            <summary>
+            Sets the value back to its default value. This still validates.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IBasicStaticSetting`1.TrySetValue(`0,System.String)">
+            <summary>
+            Converts the value to the required type and sets the property/field.
+            </summary>
+            <param name="source"></param>
+            <param name="value">The passed in argument to convert.</param>
+            <returns>Whether the value has successfully been set.</returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IBasicStaticSetting`1.TrySetValue(`0,System.String,AdvorangesSettingParser.Interfaces.ITrySetValueContext)">
+            <summary>
+            Converts the value to the required type and sets the property/field.
+            </summary>
+            <param name="source"></param>
+            <param name="value">The passed in argument to convert.</param>
+            <param name="context">Additional arguments provided.</param>
+            <returns>Whether the value has successfully been set.</returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.IStaticSetting`2">
+            <summary>
+            Allows try setting, regular setting, getting, and resetting the value.
+            </summary>
+            <typeparam name="TSource"></typeparam>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IStaticSetting`2.GetValue(`0)">
+            <summary>
+            The current value of the setting.
+            </summary>
+            <param name="source"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IStaticSetting`2.SetValue(`0,`1)">
+            <summary>
+            Sets the setting directly. This still validates.
+            </summary>
+            <param name="source"></param>
+            <param name="value"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.IStaticSetting`1">
+            <summary>
+            Allows try setting, regular setting, getting, and resetting the value.
+            </summary>
+            <typeparam name="TSource"></typeparam>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IStaticSetting`1.GetValue(`0)">
+            <summary>
+            The current value of the setting.
+            </summary>
+            <param name="source"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Interfaces.IStaticSetting`1.SetValue(`0,System.Object)">
+            <summary>
+            Sets the setting directly. This still validates.
+            </summary>
+            <param name="source"></param>
+            <param name="value"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.ITrySetValueContext">
+            <summary>
+            Additional arguments for <see cref="M:AdvorangesSettingParser.Interfaces.IBasicSetting.TrySetValue(System.String,AdvorangesSettingParser.Interfaces.ITrySetValueContext)"/>.
+            </summary>
+        </member>
+        <member name="T:AdvorangesSettingParser.Interfaces.IValueParser`1">
+            <summary>
+            Parses and validates values for a setting.
+            </summary>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.IValueParser`1.EqualityComparer">
+            <summary>
+            Compares for equality among the values.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.IValueParser`1.Parser">
+            <summary>
+            How to parse the value from a string.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Interfaces.IValueParser`1.Validation">
+            <summary>
+            How to validate the parsed value.
+            </summary>
+        </member>
+        <member name="T:AdvorangesSettingParser.PrefixState">
+            <summary>
+            Whether or not a prefix is required for setting parsing.
+            </summary>
+        </member>
+        <member name="F:AdvorangesSettingParser.PrefixState.Required">
+            <summary>
+            Indicates the prefix is required.
+            </summary>
+        </member>
+        <member name="F:AdvorangesSettingParser.PrefixState.Optional">
+            <summary>
+            Indicates the prefix is optional.
+            </summary>
+        </member>
+        <member name="F:AdvorangesSettingParser.PrefixState.NotPrefixed">
+            <summary>
+            Indicates the prefix must not be there.
+            </summary>
+        </member>
+        <member name="T:AdvorangesSettingParser.Results.HelpResult">
+            <summary>
+            Indicates this is a result that contains information from a help command.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.HelpResult.#ctor(System.String)">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Results.HelpResult"/>.
+            </summary>
+            <param name="help"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Results.Result">
+            <summary>
+            Indicates the status of something.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.Result.Response">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.Result.IsSuccess">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.Result.#ctor(System.Boolean,System.String)">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Results.Result"/>.
+            </summary>
+            <param name="isSuccess"></param>
+            <param name="response"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.Result.FromError(System.String)">
+            <summary>
+            Returns a successful result.
+            </summary>
+            <param name="response"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.Result.FromSuccess(System.String)">
+            <summary>
+            Returns a successful result.
+            </summary>
+            <param name="response"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.Result.ToString">
+            <summary>
+            Returns the response.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Results.SettingContextResult">
+            <summary>
+            Result about the context of try set value.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.SettingContextResult.ExpectedType">
+            <summary>
+            The expected type.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.SettingContextResult.GivenType">
+            <summary>
+            The given type.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.SettingContextResult.#ctor(System.Boolean,System.String,AdvorangesSettingParser.Interfaces.ISettingMetadata,System.Type,System.Type)">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Results.SettingContextResult"/>.
+            </summary>
+            <param name="isSuccess"></param>
+            <param name="setting"></param>
+            <param name="expected"></param>
+            <param name="given"></param>
+            <param name="response"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.SettingContextResult.FromError(AdvorangesSettingParser.Interfaces.ISettingMetadata,System.Type,System.Type,System.String)">
+            <summary>
+            Returns a successful result.
+            </summary>
+            <param name="setting"></param>
+            <param name="expected"></param>
+            <param name="given"></param>
+            <param name="response"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.SettingContextResult.FromSuccess(AdvorangesSettingParser.Interfaces.ISettingMetadata,System.Type,System.Type,System.String)">
+            <summary>
+            Returns a failed result.
+            </summary>
+            <param name="setting"></param>
+            <param name="expected"></param>
+            <param name="given"></param>
+            <param name="response"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Results.SettingParserResult">
+            <summary>
+            Holds the results of parsing settings.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.SettingParserResult.UnusedParts">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.SettingParserResult.Successes">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.SettingParserResult.Errors">
+            <inheritdoc />
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.SettingParserResult.Help">
+            <inheritdoc />
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.SettingParserResult.#ctor(System.Collections.Generic.IEnumerable{AdvorangesSettingParser.Interfaces.IResult},System.Collections.Generic.IEnumerable{AdvorangesSettingParser.Interfaces.IResult},System.Collections.Generic.IEnumerable{AdvorangesSettingParser.Interfaces.IResult},System.Collections.Generic.IEnumerable{AdvorangesSettingParser.Interfaces.IResult})">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Results.SettingParserResult"/>.
+            </summary>
+            <param name="unusedParts"></param>
+            <param name="successes"></param>
+            <param name="errors"></param>
+            <param name="help"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Results.SettingResult">
+            <summary>
+            Result for something to do with a setting.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.SettingResult.Setting">
+            <summary>
+            The targeted setting.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.SettingResult.#ctor(AdvorangesSettingParser.Interfaces.ISettingMetadata,System.Boolean,System.String)">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Results.SettingResult"/>.
+            </summary>
+            <param name="setting"></param>
+            <param name="isSuccess"></param>
+            <param name="response"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Results.SetValueResult">
+            <summary>
+            Explains why a value was invalid or valid when attempting to set it.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.SetValueResult.ParameterType">
+            <summary>
+            The parameter's type.
+            </summary>
+        </member>
+        <member name="P:AdvorangesSettingParser.Results.SetValueResult.Value">
+            <summary>
+            The passed in value.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.SetValueResult.#ctor(System.Boolean,System.String,AdvorangesSettingParser.Interfaces.ISettingMetadata,System.Type,System.Object)">
+            <summary>
+            Creates an instance of <see cref="T:AdvorangesSettingParser.Results.SetValueResult"/>.
+            </summary>
+            <param name="isSuccess"></param>
+            <param name="setting"></param>
+            <param name="parameterType"></param>
+            <param name="value"></param>
+            <param name="response"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.SetValueResult.FromError(AdvorangesSettingParser.Interfaces.ISettingMetadata,System.Object,System.String)">
+            <summary>
+            Returns a failed result.
+            </summary>
+            <param name="setting"></param>
+            <param name="value"></param>
+            <param name="response"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Results.SetValueResult.FromSuccess(AdvorangesSettingParser.Interfaces.ISettingMetadata,System.Object,System.String)">
+            <summary>
+            Returns a successful result.
+            </summary>
+            <param name="setting"></param>
+            <param name="value"></param>
+            <param name="response"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.TryParseDelegate`1">
+            <summary>
+            Attempts to convert the string to the supplied type.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="s">Supplied string.</param>
+            <param name="value">Converted value.</param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Utils.ArgumentMappingUtils">
+            <summary>
+            Methods for putting a setting and its arguments together.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.ArgumentMappingUtils.Parse(AdvorangesSettingParser.Implementation.ParseArgs,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Returns a dictionary of names and their values. Names are only counted if they begin with a passed in prefix.
+            </summary>
+            <param name="input"></param>
+            <param name="prefixes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.ArgumentMappingUtils.CreateArgMap``1(AdvorangesSettingParser.Implementation.ParseArgs,AdvorangesSettingParser.TryParseDelegate{``0})">
+            <summary>
+            Maps each setting of type <typeparamref name="T"/> to a value.
+            Can map the same setting multiple times to different values, but will all be in the passed in order.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="args"></param>
+            <param name="tryParser"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.ArgumentMappingUtils.TrimSingle(System.String,AdvorangesSettingParser.Implementation.ParseArgs)">
+            <summary>
+            Removes a single character from the supplied characters from the start and end.
+            </summary>
+            <param name="s"></param>
+            <param name="args"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.ArgumentMappingUtils.Deprefix(System.String,System.String,AdvorangesSettingParser.PrefixState)">
+            <summary>
+            Removes the prefix from the start of the string if it exists.
+            </summary>
+            <param name="prefix"></param>
+            <param name="input"></param>
+            <param name="state"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Utils.CollectionSettingUtils">
+            <summary>
+            Utilities for collection settings.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.CollectionSettingUtils.TrySetValue``1(AdvorangesSettingParser.Interfaces.IValueParser{``0},System.String,AdvorangesSettingParser.Implementation.CollectionModificationContext,System.Func{System.Collections.Generic.ICollection{``0}})">
+            <summary>
+            Attempst to modify the collection in the specified way.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="setting"></param>
+            <param name="value"></param>
+            <param name="context"></param>
+            <param name="getter"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.CollectionSettingUtils.TryGetCMAction``1(AdvorangesSettingParser.Interfaces.IValueParser{``0},AdvorangesSettingParser.Implementation.CollectionModificationContext,System.String@)">
+            <summary>
+            Sets the action to use on the context.
+            </summary>
+            <param name="setting"></param>
+            <param name="context"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.CollectionSettingUtils.ModifyCollection``1(AdvorangesSettingParser.Interfaces.IValueParser{``0},System.Collections.Generic.ICollection{``0},``0,AdvorangesSettingParser.Implementation.CollectionModificationContext)">
+            <summary>
+            Modifies the collection in the specified way.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="setting"></param>
+            <param name="source"></param>
+            <param name="value"></param>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.CollectionSettingUtils.RemoveAll``1(System.Collections.Generic.ICollection{``0},``0,System.Collections.Generic.IEqualityComparer{``0},System.Int32)">
+            <summary>
+            Removes all values which equal the supplied value using the supplied equality comparer.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="source"></param>
+            <param name="value"></param>
+            <param name="equalityComparer"></param>
+            <param name="limit"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.CollectionSettingUtils.SetCollection``1(AdvorangesSettingParser.Interfaces.IValueParser{``0},System.Collections.Generic.ICollection{``0},System.Collections.Generic.ICollection{``0})">
+            <summary>
+            Clears the source then copies over the new values while validating every new value.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="setting"></param>
+            <param name="source"></param>
+            <param name="newValues"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Utils.SettingParsingUtils">
+            <summary>
+            Extension methods for <see cref="T:AdvorangesSettingParser.Implementation.SettingParserBase`1"/>.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.FormatNeededSettings``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Formats a string describing what settings still need to be set.
+            </summary>
+            <param name="settings"></param>
+            <returns>A description of what settings still need to be set.</returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.AreAllSet(AdvorangesSettingParser.Implementation.Instance.SettingParser)">
+            <summary>
+            Returns true if there are 0 needed settings.
+            </summary>
+            <param name="parser"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.AreAllSet``1(AdvorangesSettingParser.Implementation.Static.StaticSettingParser{``0},``0)">
+            <summary>
+            Returns true if there are 0 needed settings.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="parser"></param>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.GetMemberExpression(System.Linq.Expressions.LambdaExpression)">
+            <summary>
+            Gets the member expression from <paramref name="expression"/>.
+            </summary>
+            <param name="expression"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.GenerateSetter``1(System.Linq.Expressions.Expression{System.Func{``0}})">
+            <summary>
+            Generates a setter method from a getter expression. If there is no setter with will throw.
+            </summary>
+            <typeparam name="TValue"></typeparam>
+            <param name="selector"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.GenerateSetter``2(System.Linq.Expressions.Expression{System.Func{``0,``1}})">
+            <summary>
+            Generates a setter method from a getter expression. If there is no setter this will throw.
+            </summary>
+            <typeparam name="TSource"></typeparam>
+            <typeparam name="TValue"></typeparam>
+            <param name="selector"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.ThrowIfStruct(System.Type,System.String)">
+            <summary>
+            Throws if the type is a struct.
+            </summary>
+            <param name="type"></param>
+            <param name="name"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.DistinctNames(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Distincts the names into a single enumerable.
+            </summary>
+            <param name="name"></param>
+            <param name="aliases"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.GetSettingParser``1(AdvorangesSettingParser.Implementation.StaticSettingParserRegistry,``0,System.Boolean)">
+            <summary>
+            Gets the setting parser either registered for the type or in the type.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="registry"></param>
+            <param name="source"></param>
+            <param name="parsableFirst"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.Parse``1(AdvorangesSettingParser.Implementation.StaticSettingParserRegistry,``0,AdvorangesSettingParser.Implementation.ParseArgs,System.Boolean)">
+            <summary>
+            If <paramref name="source"/> is <see cref="T:AdvorangesSettingParser.Interfaces.IParsable"/> will use that parser, otherwise searches for a registered parser.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="registry"></param>
+            <param name="source"></param>
+            <param name="args"></param>
+            <param name="parsableFirst">Whether to check for the object being parsable first before trying to get the registered setting parser.</param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.SettingParsingUtils.Register``1(AdvorangesSettingParser.Implementation.Static.StaticSettingParser{``0})">
+            <summary>
+            Registers both the static setting parser and a try parser for it. Also freezes the parser making it unmodifiable.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="parser"></param>
+        </member>
+        <member name="T:AdvorangesSettingParser.Utils.TryParseUtils">
+            <summary>
+            Implementations for some try parses which are not already existent by default.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.TryParseUtils.TryParseStaticSetting``1(System.String,``0@)">
+            <summary>
+            Attempts to parse the supplied arguments into the specified class through a parser registered in <see cref="T:AdvorangesSettingParser.Implementation.StaticSettingParserRegistry"/>.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="s"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.TryParseUtils.TryParseDirectoryInfo(System.String,System.IO.DirectoryInfo@)">
+            <summary>
+            Returns true if this directory has a valid name, returns false if not.
+            </summary>
+            <param name="s"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.TryParseUtils.TryParseUTCDateTime(System.String,System.DateTime@)">
+            <summary>
+            Attempts to parse the datetime and then set it to UTC.
+            </summary>
+            <param name="s"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.TryParseUtils.TryParseEnum``1(System.String,``0@)">
+            <summary>
+            Attempts to parse an enum.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="s"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.TryParseUtils.TryParseUri(System.String,System.Uri@)">
+            <summary>
+            Attempts to parse an absolue url.
+            </summary>
+            <param name="s"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.TryParseUtils.TryParseEmpty``1(System.String,``0@)">
+            <summary>
+            Acts as an empty <see cref="T:AdvorangesSettingParser.TryParseDelegate`1"/> always returning true and the default value.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.TryParseUtils.TryParseTemporary``1(System.String,``0@)">
+            <summary>
+            Functionally the exact same as <see cref="M:AdvorangesSettingParser.Utils.TryParseUtils.TryParseEmpty``1(System.String,``0@)"/> except this leaves a warning to actually implement it.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="s"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AdvorangesSettingParser.Utils.ValueConverterUtils">
+            <summary>
+            Utilities for <see cref="T:AdvorangesSettingParser.Interfaces.IValueParser`1"/>.
+            </summary>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.ValueConverterUtils.ThrowIfInvalid``1(AdvorangesSettingParser.Interfaces.IValueParser{``0},``0)">
+            <summary>
+            Throws an argument exception if the value is invalid.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="converter"></param>
+            <param name="value"></param>
+        </member>
+        <member name="M:AdvorangesSettingParser.Utils.ValueConverterUtils.TryConvertValue``1(AdvorangesSettingParser.Interfaces.IValueParser{``0},System.String,``0@)">
+            <summary>
+            Attempts to convert the value.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="converter"></param>
+            <param name="value"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

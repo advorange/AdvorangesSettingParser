@@ -13,13 +13,12 @@ namespace AdvorangesSettingParser.Utils
 		/// <summary>
 		/// Returns a dictionary of names and their values. Names are only counted if they begin with a passed in prefix.
 		/// </summary>
-		/// <param name="prefixes"></param>
-		/// <param name="throwQuoteError">Whether to throw if there are mismatched quotes after parsing.</param>
 		/// <param name="input"></param>
+		/// <param name="prefixes"></param>
 		/// <returns></returns>
-		public static IEnumerable<(string Setting, string Args)> Parse(IEnumerable<string> prefixes, bool throwQuoteError, ParseArgs input)
+		public static IEnumerable<(string Setting, string Args)> Parse(ParseArgs input, IEnumerable<string> prefixes)
 		{
-			return CreateArgMap(input, throwQuoteError, (string s, out string result) =>
+			return CreateArgMap(input, (string s, out string result) =>
 			{
 				foreach (var prefix in prefixes)
 				{
@@ -34,18 +33,14 @@ namespace AdvorangesSettingParser.Utils
 			});
 		}
 		/// <summary>
-		/// Maps each setting of type <typeparamref name="TValue"/> to a value.
+		/// Maps each setting of type <typeparamref name="T"/> to a value.
 		/// Can map the same setting multiple times to different values, but will all be in the passed in order.
 		/// </summary>
-		/// <typeparam name="TValue"></typeparam>
+		/// <typeparam name="T"></typeparam>
 		/// <param name="args"></param>
-		/// <param name="throwQuoteError">Whether to throw if there are mismatched quotes after parsing.</param>
 		/// <param name="tryParser"></param>
 		/// <returns></returns>
-		public static IEnumerable<(TValue Setting, string Args)> CreateArgMap<TValue>(
-			ParseArgs args,
-			bool throwQuoteError,
-			TryParseDelegate<TValue> tryParser)
+		public static IEnumerable<(T Setting, string Args)> CreateArgMap<T>(ParseArgs args, TryParseDelegate<T> tryParser)
 		{
 			string AddArgs(ref string current, string n)
 				=> current += current != null ? $" {n}" : n;
@@ -59,59 +54,43 @@ namespace AdvorangesSettingParser.Utils
 			//		TestText
 			//Which with the current data structure should be (FieldInfo, "-Name "Test Value" -Text TestText")
 			//then when those get parsed would turn into (Name, Test Value) and (Text, TestText)
-			var currentSetting = default(TValue);
+			var currentSetting = default(T);
 			var currentArgs = default(string);
-			var quoteDeepness = 0;
-			for (int i = 0; i < args.Length; ++i)
+			foreach (var arg in args)
 			{
-				var fullCurrentValue = args[i];
-				var (StartsWithQuotes, EndsWithQuotes, Value) = TrimSingle(fullCurrentValue, ParseArgs.QuoteChars);
+				var (StartsWithQuotes, EndsWithQuotes, Value) = TrimSingle(arg, args);
 
-				if (StartsWithQuotes) { ++quoteDeepness; }
-				if (EndsWithQuotes) { --quoteDeepness; }
-				//New setting found, so return current values and reset state for next setting
-				if (quoteDeepness == 0)
+				//When this is not a setting we add the args onto the current args then return the current values instantly
+				//We can't return Value directly because if there were other quote deepness args we need to count those.
+				if (!tryParser(Value, out var setting))
 				{
-					//When this is not a setting we add the args onto the current args then return the current values instantly
-					//We can't return Value directly because if there were other quote deepness args we need to count those.
-					if (!tryParser(Value, out var setting))
-					{
-						//Trim quotes off the end of a setting value since they're not needed to group anything together anymore
-						//And they just complicate future parsing
-						var settingValue = TrimSingle(AddArgs(ref currentArgs, fullCurrentValue), ParseArgs.QuoteChars).Value;
-						yield return (currentSetting, settingValue);
-					}
-					//When this is a setting we only check if there's a setting from the last iteration
-					//If there is, we send that one because there's a chance it could be a parameterless setting
-					else if (currentSetting != null)
-					{
-						yield return (currentSetting, currentArgs);
-					}
-					currentSetting = setting;
-					currentArgs = null;
-					continue;
+					//Trim quotes off the end of a setting value since they're not needed to group anything together anymore
+					//And they just complicate future parsing
+					var settingValue = TrimSingle(AddArgs(ref currentArgs, arg), args).Value;
+					yield return (currentSetting, settingValue);
 				}
-
-				//If inside any quotes at all, keep adding until we run out of args
-				AddArgs(ref currentArgs, fullCurrentValue);
+				//When this is a setting we only check if there's a setting from the last iteration
+				//If there is, we send that one because there's a chance it could be a parameterless setting
+				else if (currentSetting != null)
+				{
+					yield return (currentSetting, currentArgs);
+				}
+				currentSetting = setting;
+				currentArgs = null;
 			}
 			//Return any leftover parts which haven't been returned yet
 			if (currentSetting != default || currentArgs != null)
 			{
-				yield return (currentSetting, TrimSingle(currentArgs, ParseArgs.QuoteChars).Value);
-			}
-			if (quoteDeepness > 0 && throwQuoteError)
-			{
-				throw new InvalidOperationException("Some quotes were not closed correctly and messed up the parsing.");
+				yield return (currentSetting, TrimSingle(currentArgs, args).Value);
 			}
 		}
 		/// <summary>
 		/// Removes a single character from the supplied characters from the start and end.
 		/// </summary>
 		/// <param name="s"></param>
-		/// <param name="quoteChars"></param>
+		/// <param name="args"></param>
 		/// <returns></returns>
-		public static (bool Start, bool End, string Value) TrimSingle(string s, IEnumerable<char> quoteChars)
+		public static (bool HasStartQuote, bool HasEndQuote, string Value) TrimSingle(string s, ParseArgs args)
 		{
 			if (s == null)
 			{
@@ -119,7 +98,7 @@ namespace AdvorangesSettingParser.Utils
 			}
 
 			var start = false;
-			foreach (var c in quoteChars)
+			foreach (var c in args.StartingQuoteCharacters)
 			{
 				if (s.StartsWith(c.ToString()))
 				{
@@ -129,7 +108,7 @@ namespace AdvorangesSettingParser.Utils
 				}
 			}
 			var end = false;
-			foreach (var c in quoteChars)
+			foreach (var c in args.EndingQuoteCharacters)
 			{
 				if (s.EndsWith(c.ToString()))
 				{

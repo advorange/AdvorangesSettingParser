@@ -71,6 +71,15 @@ namespace AdvorangesSettingParser.Tests
 			Assert.AreEqual("Space Value", thirdObj.Stringy);
 			Assert.AreEqual(1, thirdObj.Number);
 		}
+		[TestMethod]
+		public void SemiSimpleQuote_Test()
+		{
+			var input = "\"test value \"aaaaaa\" dog\"";
+			var expectedOutput = "test value \"aaaaaa\" dog";
+			var parsed = ParseArgs.Parse(input);
+			Assert.AreEqual(1, parsed.Count);
+			Assert.AreEqual(expectedOutput, parsed[0]);
+		}
 	}
 
 	public class GreatGrandparent
