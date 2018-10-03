@@ -35,7 +35,7 @@ namespace AdvorangesSettingParser.Implementation
 		/// <summary>
 		/// The arguments to be used.
 		/// </summary>
-		private ImmutableArray<string> _Arguments { get; }
+		private string[] _Arguments { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="ParseArgs"/> to remove the need for two methods every time string and string[] are interchangeable.
@@ -45,7 +45,7 @@ namespace AdvorangesSettingParser.Implementation
 		/// <param name="endingQuotes"></param>
 		public ParseArgs(IEnumerable<string> args, IEnumerable<char> startingQuotes, IEnumerable<char> endingQuotes)
 		{
-			_Arguments = args.Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).ToImmutableArray();
+			_Arguments = args.ToArray();
 			StartingQuoteCharacters = startingQuotes.ToImmutableArray();
 			EndingQuoteCharacters = endingQuotes.ToImmutableArray();
 		}
@@ -71,7 +71,7 @@ namespace AdvorangesSettingParser.Implementation
 		public static ParseArgs Parse(string input)
 			=> TryParse(input, out var result) ? result : throw new ArgumentException("There is a quote mismatch.");
 		/// <summary>
-		/// Attempts to parse a <see cref="ParseArgs"/> using the default quote character ' for beginning and ending quotes.
+		/// Attempts to parse a <see cref="ParseArgs"/> using the default quote character " for beginning and ending quotes.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <param name="result"></param>
@@ -99,7 +99,7 @@ namespace AdvorangesSettingParser.Implementation
 			});
 			var endIndexes = GetIndexes(input, endQuotes, allowEscaping: true, (previous, current, next) =>
 			{
-				return next == null || char.IsWhiteSpace(next.Value) || startQuotes.Contains(next.Value);
+				return next == null || char.IsWhiteSpace(next.Value) || endQuotes.Contains(next.Value);
 			});
 			return TryParse(input, startQuotes, endQuotes, startIndexes, endIndexes, out result);
 		}
