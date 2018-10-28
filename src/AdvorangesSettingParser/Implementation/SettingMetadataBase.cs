@@ -54,7 +54,7 @@ namespace AdvorangesSettingParser.Implementation
 		/// <inheritdoc />
 		public bool UnescapeBeforeSetting { get; set; } = typeof(TValue) == typeof(string);
 		/// <inheritdoc />
-		public IEnumerable<string> Names { get; }
+		public IReadOnlyCollection<string> Names { get; }
 		/// <inheritdoc />
 		public string MainName { get; }
 		/// <inheritdoc />
@@ -140,6 +140,7 @@ namespace AdvorangesSettingParser.Implementation
 				return convertResult;
 			}
 			setter(result);
+			HasBeenSet = true;
 			return SetValueResult.FromSuccess(this, result, "Successfully set.");
 		}
 	}

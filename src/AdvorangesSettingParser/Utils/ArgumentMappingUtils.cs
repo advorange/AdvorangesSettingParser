@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesUtils;
 
@@ -42,6 +43,11 @@ namespace AdvorangesSettingParser.Utils
 		/// <returns></returns>
 		public static IEnumerable<(T Setting, string Args)> CreateArgMap<T>(ParseArgs args, TryParseDelegate<T> tryParser)
 		{
+			if (args.Count == 0)
+			{
+				yield break;
+			}
+
 			string AddArgs(ref string current, string n)
 				=> current += current != null ? $" {n}" : n;
 

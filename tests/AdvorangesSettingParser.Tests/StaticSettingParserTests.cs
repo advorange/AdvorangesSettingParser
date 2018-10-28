@@ -60,25 +60,25 @@ namespace AdvorangesSettingParser.Tests
 			var args2 = $"{prefix}{nameof(TestClass.UlongValue)} 10";
 
 			var object1 = new TestClass();
-			Assert.AreEqual(2, parser.GetNeededSettings(object1).Count());
+			Assert.AreEqual(2, parser.GetNeededSettings(object1).Count);
 			parser.Parse(object1, args1);
-			Assert.AreEqual(1, parser.GetNeededSettings(object1).Count());
+			Assert.AreEqual(1, parser.GetNeededSettings(object1).Count);
 			parser.Parse(object1, args2);
-			Assert.AreEqual(0, parser.GetNeededSettings(object1).Count());
+			Assert.AreEqual(0, parser.GetNeededSettings(object1).Count);
 
 			//Use reflection to evaluate how many references are being stored
 			var properties = parser.GetType().GetProperties(BindingFlags.Instance | BindingFlags.NonPublic);
-			var property = properties.Single(x => x.Name == "UnsetSettings");
+			var property = properties.Single(x => x.Name == "SetSettings");
 			var value = (IEnumerable)property.GetValue(parser);
 
 			new Action(() =>
 			{
 				var object2 = new TestClass();
-				Assert.AreEqual(2, parser.GetNeededSettings(object2).Count());
+				Assert.AreEqual(2, parser.GetNeededSettings(object2).Count);
 				parser.Parse(object2, args1);
-				Assert.AreEqual(1, parser.GetNeededSettings(object2).Count());
+				Assert.AreEqual(1, parser.GetNeededSettings(object2).Count);
 				parser.Parse(object2, args2);
-				Assert.AreEqual(0, parser.GetNeededSettings(object2).Count());
+				Assert.AreEqual(0, parser.GetNeededSettings(object2).Count);
 
 				var nonGCCount = 0;
 				foreach (var element in value)

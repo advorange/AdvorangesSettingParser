@@ -14,7 +14,7 @@ namespace AdvorangesSettingParser.Implementation.Static
 		/// <summary>
 		/// Keeps a list of any objects parsed and which settings have been set on them.
 		/// </summary>
-		protected ConditionalWeakTable<TSource, List<IStaticSetting<TSource>>> UnsetSettings { get; } = new ConditionalWeakTable<TSource, List<IStaticSetting<TSource>>>();
+		protected ConditionalWeakTable<TSource, HashSet<IStaticSetting<TSource>>> SetSettings { get; } = new ConditionalWeakTable<TSource, HashSet<IStaticSetting<TSource>>>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="StaticSettingParser{TSource}"/> with the supplied prefixes.
@@ -29,7 +29,7 @@ namespace AdvorangesSettingParser.Implementation.Static
 		protected override ISettingParserResult Parse(object source, ParseArgs input)
 			=> Parse((TSource)source, input);
 		/// <inheritdoc />
-		protected override IEnumerable<IStaticSetting<TSource>> GetNeededSettings(object source)
+		protected override IReadOnlyCollection<IStaticSetting<TSource>> GetNeededSettings(object source)
 			=> GetNeededSettings((TSource)source);
 		/// <summary>
 		/// Parses the arguments into the supplied instance.
@@ -44,7 +44,8 @@ namespace AdvorangesSettingParser.Implementation.Static
 				var result = setting.TrySetValue(source, value);
 				if (result.IsSuccess)
 				{
-					PrivateGetNeededSettings(source).RemoveAll(x => x.MainName == setting.MainName);
+					var set = SetSettings.GetValue(source, x => new HashSet<IStaticSetting<TSource>>());
+					set.Add(setting);
 				}
 				return result;
 			});
@@ -54,10 +55,11 @@ namespace AdvorangesSettingParser.Implementation.Static
 		/// </summary>
 		/// <param name="source">The targeted source.</param>
 		/// <returns>The settings which still need to be set.</returns>
-		public IEnumerable<IStaticSetting<TSource>> GetNeededSettings(TSource source)
-			=> PrivateGetNeededSettings(source).AsReadOnly();
-		private List<IStaticSetting<TSource>> PrivateGetNeededSettings(TSource source)
-			=> UnsetSettings.GetValue(source, x => this.Where(s => !s.IsOptional).ToList());
+		public IReadOnlyCollection<IStaticSetting<TSource>> GetNeededSettings(TSource source)
+		{
+			var set = SetSettings.GetValue(source, x => new HashSet<IStaticSetting<TSource>>());
+			return this.Where(x => !x.IsOptional && !set.Contains(x)).ToArray();
+		}
 
 		private class StaticSettingHelpCommand : HelpCommand, IStaticSetting<TSource>
 		{

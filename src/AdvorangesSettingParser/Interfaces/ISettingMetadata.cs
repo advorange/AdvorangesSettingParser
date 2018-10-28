@@ -11,7 +11,7 @@ namespace AdvorangesSettingParser.Interfaces
 		/// <summary>
 		/// The names of this command.
 		/// </summary>
-		IEnumerable<string> Names { get; }
+		IReadOnlyCollection<string> Names { get; }
 		/// <summary>
 		/// The first value in <see cref="Names"/>.
 		/// </summary>

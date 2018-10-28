@@ -9,7 +9,7 @@ namespace AdvorangesSettingParser.Implementation
 	/// <summary>
 	/// Used to remove the need for two seperate methods each time for string and string[].
 	/// </summary>
-	public class ParseArgs : IReadOnlyCollection<string>
+	public struct ParseArgs : IReadOnlyCollection<string>
 	{
 		/// <summary>
 		/// How to validate a start or end quote.
@@ -62,7 +62,6 @@ namespace AdvorangesSettingParser.Implementation
 
 		/// <inheritdoc />
 		public IEnumerator<string> GetEnumerator() => ((IReadOnlyCollection<string>)_Arguments).GetEnumerator();
-
 		/// <summary>
 		/// Parses a <see cref="ParseArgs"/> from the passed in string or throws an exception.
 		/// </summary>
@@ -90,7 +89,8 @@ namespace AdvorangesSettingParser.Implementation
 		{
 			if (string.IsNullOrWhiteSpace(input))
 			{
-				throw new ArgumentException("Cannot be null or whitespace.", nameof(input));
+				result = new ParseArgs(Enumerable.Empty<string>(), startQuotes, endQuotes);
+				return true;
 			}
 
 			var startIndexes = GetIndexes(input, startQuotes, allowEscaping: true, (previous, current, next) =>
@@ -127,8 +127,8 @@ namespace AdvorangesSettingParser.Implementation
 				return true;
 			}
 
-			var minStart = startIndexes.Min(x => x);
-			var maxEnd = endIndexes.Max(x => x);
+			var minStart = startIndexes.Min();
+			var maxEnd = endIndexes.Max();
 			if (minStart == 0 && maxEnd == input.Length - 1)
 			{
 				result = new ParseArgs(new[] { GetTrimmedString(input, minStart + 1, maxEnd) }, startQuotes, endQuotes);
@@ -240,6 +240,6 @@ namespace AdvorangesSettingParser.Implementation
 			=> args._Arguments.ToArray();
 
 		//IReadOnlyCollection
-		IEnumerator IEnumerable.GetEnumerator() => ((IReadOnlyCollection<string>)_Arguments).GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 	}
 }

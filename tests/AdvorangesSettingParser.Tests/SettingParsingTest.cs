@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Instance;
@@ -11,65 +12,66 @@ namespace AdvorangesSettingParser.Tests
 	[TestClass]
 	public class SettingParsingTest
 	{
-		private static readonly StaticSettingParser<TestClass> StaticSettingParser = new StaticSettingParser<TestClass>
-		{
-			new StaticSetting<TestClass, string>(x => x.StringValue),
-			new StaticSetting<TestClass, int>(x => x.IntValue),
-			new StaticSetting<TestClass, bool>(x => x.BoolValue),
-			new StaticSetting<TestClass, bool>(x => x.FlagValue) { IsFlag = true, },
-			new StaticSetting<TestClass, bool>(x => x.FlagValue2) { IsFlag = true, },
-			new StaticSetting<TestClass, ulong>(x => x.UlongValue),
-			new StaticSetting<TestClass, DateTime>(x => x.DateTimeValue, parser: DateTime.TryParse),
-			new StaticCollectionSetting<TestClass, string>(x => x.CollectionStrings),
-		};
-		private readonly TestClass Instance;
-		private readonly SettingParser SettingParser;
-		private readonly string Prefix;
-
-		public SettingParsingTest()
-		{
-			Instance = new TestClass();
-			SettingParser = new SettingParser
-			{
-				new Setting<string>(() => Instance.StringValue),
-				new Setting<int>(() => Instance.IntValue),
-				new Setting<bool>(() => Instance.BoolValue),
-				new Setting<bool>(() => Instance.FlagValue) { IsFlag = true, },
-				new Setting<bool>(() => Instance.FlagValue2) { IsFlag = true, },
-				new Setting<ulong>(() => Instance.UlongValue),
-				new Setting<DateTime>(() => Instance.DateTimeValue, parser: DateTime.TryParse),
-				new CollectionSetting<string>(() => Instance.CollectionStrings),
-			};
-			Prefix = SettingParser.Prefixes.First();
-		}
-
+		[TestMethod]
+		public void Null_Test()
+			=> ParsingTest(NullParsing);
+		[TestMethod]
+		public void Empty_Test()
+			=> ParsingTest(EmptyParsing);
 		[TestMethod]
 		public void BasicParsing_Test()
-		{
-			BasicParsing(SettingParser, Instance);
-			var newClass = new TestClass();
-			BasicParsing(StaticSettingParser, newClass);
-		}
+			=> ParsingTest(BasicParsing);
 		[TestMethod]
 		public void FlagParsing_Test()
-		{
-			FlagParsing(SettingParser, Instance);
-			var newClass = new TestClass();
-			FlagParsing(StaticSettingParser, newClass);
-		}
+			=> ParsingTest(FlagParsing);
 		[TestMethod]
 		public void ComplicatedParsing_Test()
-		{
-			ComplicatedParsing(SettingParser, Instance);
-			var newClass = new TestClass();
-			ComplicatedParsing(StaticSettingParser, newClass);
-		}
+			=> ParsingTest(ComplicatedParsing);
 		[TestMethod]
 		public void CollectionParsing_Test()
+			=> ParsingTest(CollectionParsing);
+
+		private static void ParsingTest(Action<ISettingParser, TestClass> action)
 		{
-			CollectionParsing(SettingParser, Instance);
-			var newClass = new TestClass();
-			CollectionParsing(StaticSettingParser, newClass);
+			var instanceInstance = new TestClass();
+			var instanceParser = new SettingParser
+			{
+				new Setting<string>(() => instanceInstance.StringValue),
+				new Setting<int>(() => instanceInstance.IntValue),
+				new Setting<bool>(() => instanceInstance.BoolValue),
+				new Setting<bool>(() => instanceInstance.FlagValue) { IsFlag = true, },
+				new Setting<bool>(() => instanceInstance.FlagValue2) { IsFlag = true, },
+				new Setting<ulong>(() => instanceInstance.UlongValue),
+				new Setting<DateTime>(() => instanceInstance.DateTimeValue, parser: DateTime.TryParse),
+				new CollectionSetting<string>(() => instanceInstance.CollectionStrings),
+			};
+			action(instanceParser, instanceInstance);
+
+			var staticInstance = new TestClass();
+			var staticParser = new StaticSettingParser<TestClass>
+			{
+				new StaticSetting<TestClass, string>(x => x.StringValue),
+				new StaticSetting<TestClass, int>(x => x.IntValue),
+				new StaticSetting<TestClass, bool>(x => x.BoolValue),
+				new StaticSetting<TestClass, bool>(x => x.FlagValue) { IsFlag = true, },
+				new StaticSetting<TestClass, bool>(x => x.FlagValue2) { IsFlag = true, },
+				new StaticSetting<TestClass, ulong>(x => x.UlongValue),
+				new StaticSetting<TestClass, DateTime>(x => x.DateTimeValue, parser: DateTime.TryParse),
+				new StaticCollectionSetting<TestClass, string>(x => x.CollectionStrings),
+			};
+			action(staticParser, staticInstance);
+		}
+		private static void NullParsing(ISettingParser parser, TestClass source)
+		{
+			var expected = parser.GetNeededSettings(source).Count;
+			parser.Parse(source, null);
+			Assert.AreEqual(expected, parser.GetNeededSettings(source).Count);
+		}
+		private static void EmptyParsing(ISettingParser parser, TestClass source)
+		{
+			var expected = parser.GetNeededSettings(source).Count;
+			parser.Parse(source, "");
+			Assert.AreEqual(expected, parser.GetNeededSettings(source).Count);
 		}
 		private static void BasicParsing(ISettingParser parser, TestClass source)
 		{

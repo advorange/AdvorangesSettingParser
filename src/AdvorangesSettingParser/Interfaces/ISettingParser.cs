@@ -11,7 +11,7 @@ namespace AdvorangesSettingParser.Interfaces
 		/// <summary>
 		/// The prefixes of this parser.
 		/// </summary>
-		IEnumerable<string> Prefixes { get; }
+		IReadOnlyCollection<string> Prefixes { get; }
 		/// <summary>
 		/// Whether to throw an exception if there is a quote mismatch.
 		/// </summary>
@@ -21,7 +21,7 @@ namespace AdvorangesSettingParser.Interfaces
 		/// The settings of this parser.
 		/// </summary>
 		/// <returns></returns>
-		IEnumerable<ISettingMetadata> GetSettings();
+		IReadOnlyCollection<ISettingMetadata> GetSettings();
 		/// <summary>
 		/// Attempts to get a setting with the specified name.
 		/// </summary>
@@ -49,6 +49,6 @@ namespace AdvorangesSettingParser.Interfaces
 		/// </summary>
 		/// <param name="source"></param>
 		/// <returns></returns>
-		IEnumerable<ISettingMetadata> GetNeededSettings(object source);
+		IReadOnlyCollection<ISettingMetadata> GetNeededSettings(object source);
 	}
 }

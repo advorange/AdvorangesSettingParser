@@ -14,7 +14,7 @@ namespace AdvorangesSettingParser.Implementation.Instance
 		/// <summary>
 		/// A list of the settings the instance this is registered in has not set which are required.
 		/// </summary>
-		protected List<ISetting> UnsetSettings { get; private set; }
+		protected HashSet<ISetting> SetSettings { get; private set; } = new HashSet<ISetting>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="SettingParser"/> with the supplied prefixes.
@@ -29,7 +29,7 @@ namespace AdvorangesSettingParser.Implementation.Instance
 		protected override ISettingParserResult Parse(object source, ParseArgs input)
 			=> Parse(input);
 		/// <inheritdoc />
-		protected override IEnumerable<ISetting> GetNeededSettings(object source)
+		protected override IReadOnlyCollection<ISetting> GetNeededSettings(object source)
 			=> GetNeededSettings();
 		/// <summary>
 		/// Parses the arguments into the parent.
@@ -43,7 +43,7 @@ namespace AdvorangesSettingParser.Implementation.Instance
 				var result = setting.TrySetValue(value);
 				if (result.IsSuccess)
 				{
-					PrivateGetNeededSettings().RemoveAll(x => x.MainName == setting.MainName);
+					SetSettings.Add(setting);
 				}
 				return result;
 			});
@@ -52,10 +52,8 @@ namespace AdvorangesSettingParser.Implementation.Instance
 		/// Returns settings which have not been set and are not optional.
 		/// </summary>
 		/// <returns>The settings which still need to be set.</returns>
-		public IEnumerable<ISetting> GetNeededSettings()
-			=> PrivateGetNeededSettings().AsReadOnly();
-		private List<ISetting> PrivateGetNeededSettings()
-			=> UnsetSettings ?? (UnsetSettings = this.Where(x => !x.IsOptional).ToList());
+		public IReadOnlyCollection<ISetting> GetNeededSettings()
+			=> this.Where(x => !x.IsOptional && !SetSettings.Contains(x)).ToArray();
 
 		private class SettingHelpCommand : HelpCommand, ISetting
 		{
