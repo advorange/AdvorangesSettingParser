@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using AdvorangesSettingParser.Interfaces;
 
 namespace AdvorangesSettingParser.Implementation.Instance
@@ -53,7 +52,7 @@ namespace AdvorangesSettingParser.Implementation.Instance
 		/// </summary>
 		/// <returns>The settings which still need to be set.</returns>
 		public IReadOnlyCollection<ISetting> GetNeededSettings()
-			=> this.Where(x => !x.IsOptional && !SetSettings.Contains(x)).ToArray();
+			=> GetNeededSettings(SetSettings);
 
 		private class SettingHelpCommand : HelpCommand, ISetting
 		{

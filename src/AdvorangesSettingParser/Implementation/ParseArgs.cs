@@ -61,7 +61,8 @@ namespace AdvorangesSettingParser.Implementation
 		}
 
 		/// <inheritdoc />
-		public IEnumerator<string> GetEnumerator() => ((IReadOnlyCollection<string>)_Arguments).GetEnumerator();
+		public IEnumerator<string> GetEnumerator()
+			=> ((IReadOnlyCollection<string>)_Arguments).GetEnumerator();
 		/// <summary>
 		/// Parses a <see cref="ParseArgs"/> from the passed in string or throws an exception.
 		/// </summary>
@@ -240,6 +241,7 @@ namespace AdvorangesSettingParser.Implementation
 			=> args._Arguments.ToArray();
 
 		//IReadOnlyCollection
-		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator()
+			=> GetEnumerator();
 	}
 }

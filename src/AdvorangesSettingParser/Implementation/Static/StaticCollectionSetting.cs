@@ -52,7 +52,7 @@ namespace AdvorangesSettingParser.Implementation.Static
 			=> this.SetCollection(GetValue(source), value);
 		/// <inheritdoc />
 		public override IResult TrySetValue(TSource source, string value)
-			=> TrySetValue(source, value, new CollectionModificationContext { Action = CMAction.Toggle });
+			=> TrySetValue(source, value, new CollectionModificationContext { Action = CollectionModificationAction.Toggle });
 		/// <inheritdoc />
 		public override IResult TrySetValue(TSource source, string value, ITrySetValueContext context)
 		{

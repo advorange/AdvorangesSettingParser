@@ -23,7 +23,7 @@ namespace AdvorangesSettingParser.Implementation
 		/// <inheritdoc />
 		public IReadOnlyCollection<string> Prefixes { get; }
 		/// <inheritdoc />
-		public bool ThrowQuoteError { get; set; }
+		public string MainPrefix { get; }
 		/// <inheritdoc />
 		public bool IsReadOnly { get; private set; }
 		/// <inheritdoc />
@@ -48,7 +48,9 @@ namespace AdvorangesSettingParser.Implementation
 		/// <param name="prefixes"></param>
 		public SettingParserBase(IEnumerable<string> prefixes = default)
 		{
-			Prefixes = (prefixes ?? DefaultPrefixes).ToImmutableArray();
+			var immutable = (prefixes ?? DefaultPrefixes).ToImmutableArray();
+			Prefixes = immutable;
+			MainPrefix = immutable[0];
 		}
 
 		/// <summary>
@@ -106,6 +108,20 @@ namespace AdvorangesSettingParser.Implementation
 		/// <returns></returns>
 		protected abstract IReadOnlyCollection<T> GetNeededSettings(object source);
 		/// <summary>
+		/// Returns settings which are not optional or have not been set/had a mutually exclusive setting set.
+		/// </summary>
+		/// <param name="set"></param>
+		/// <returns></returns>
+		protected IReadOnlyCollection<T> GetNeededSettings(IEnumerable<T> set)
+		{
+			return this.Where(x =>
+			{
+				return !x.IsOptional
+					&& !set.Contains(x)
+					&& !(x.Group != null && set.Any(y => y.Group == x.Group));
+			}).ToArray();
+		}
+		/// <summary>
 		/// Attempts to get the setting with the specified name.
 		/// </summary>
 		/// <param name="name"></param>
@@ -150,7 +166,7 @@ namespace AdvorangesSettingParser.Implementation
 		{
 			ThrowIfReadOnly();
 
-			if (setting is HelpCommand)
+			if (setting.IsHelp)
 			{
 				if (HasHelpCommand)
 				{
@@ -165,6 +181,7 @@ namespace AdvorangesSettingParser.Implementation
 				NameMap.Add(name, guid);
 			}
 			SettingMap.Add(guid, setting);
+			setting.AssociateParser(this);
 		}
 		/// <inheritdoc />
 		public bool Remove(T setting)
@@ -175,7 +192,7 @@ namespace AdvorangesSettingParser.Implementation
 				return false;
 			}
 
-			if (setting is HelpCommand)
+			if (setting.IsHelp)
 			{
 				HasHelpCommand = false;
 			}
@@ -215,7 +232,7 @@ namespace AdvorangesSettingParser.Implementation
 
 		//ISettingParser
 		IReadOnlyCollection<ISettingMetadata> ISettingParser.GetSettings()
-			=> this.Where(x => !(x is HelpCommand)).Cast<ISettingMetadata>().ToArray();
+			=> this.Cast<ISettingMetadata>().ToArray();
 		bool ISettingParser.TryGetSetting(string name, PrefixState state, out ISettingMetadata setting)
 		{
 			var success = TryGetSetting(name, state, out var temp);
@@ -227,6 +244,6 @@ namespace AdvorangesSettingParser.Implementation
 		ISettingParserResult ISettingParser.Parse(object source, ParseArgs input)
 			=> Parse(source, input);
 		IReadOnlyCollection<ISettingMetadata> ISettingParser.GetNeededSettings(object source)
-			=> GetNeededSettings(source).Cast<ISettingMetadata>().ToArray();
+			=> (IReadOnlyCollection<ISettingMetadata>)GetNeededSettings(source);
 	}
 }

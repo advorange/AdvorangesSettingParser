@@ -52,7 +52,6 @@ namespace AdvorangesSettingParser.Results
 		/// <returns></returns>
 		public static SettingContextResult FromSuccess(ISettingMetadata setting, Type expected, Type given, string response)
 			=> new SettingContextResult(true, response, setting, expected, given);
-
 		private static string GenerateResponse(ISettingMetadata setting, Type expected, Type given, string response)
 			=> $"{response ?? throw new ArgumentException(nameof(response))} ({setting.MainName}, {expected.Name}, {given?.Name ?? "Nothing"})".TrimStart();
 	}

@@ -6,7 +6,7 @@ namespace AdvorangesSettingParser.Implementation.Instance
 	/// <summary>
 	/// Base class of an instance setting.
 	/// Allows easy implementation of either a singular property or a collection property.
-	/// /// </summary>
+	/// s</summary>
 	/// <typeparam name="TPropertyValue">This can be the same type as <typeparamref name="TValue"/>.</typeparam>
 	/// <typeparam name="TValue">This can be the same type as <typeparamref name="TPropertyValue"/>.</typeparam>
 	public abstract class SettingBase<TPropertyValue, TValue>

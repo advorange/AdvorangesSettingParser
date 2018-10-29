@@ -13,10 +13,10 @@ namespace AdvorangesSettingParser.Tests
 	public class SettingParsingTest
 	{
 		[TestMethod]
-		public void Null_Test()
+		public void NullParsing_Test()
 			=> ParsingTest(NullParsing);
 		[TestMethod]
-		public void Empty_Test()
+		public void EmptyParsing_Test()
 			=> ParsingTest(EmptyParsing);
 		[TestMethod]
 		public void BasicParsing_Test()
@@ -45,6 +45,8 @@ namespace AdvorangesSettingParser.Tests
 				new Setting<DateTime>(() => instanceInstance.DateTimeValue, parser: DateTime.TryParse),
 				new CollectionSetting<string>(() => instanceInstance.CollectionStrings),
 			};
+			var instanceSettings = ((ISettingParser)instanceParser).GetSettings();
+			Assert.AreEqual(instanceParser.Count, instanceSettings.Count);
 			action(instanceParser, instanceInstance);
 
 			var staticInstance = new TestClass();
@@ -59,6 +61,8 @@ namespace AdvorangesSettingParser.Tests
 				new StaticSetting<TestClass, DateTime>(x => x.DateTimeValue, parser: DateTime.TryParse),
 				new StaticCollectionSetting<TestClass, string>(x => x.CollectionStrings),
 			};
+			var staticSettings = ((ISettingParser)staticParser).GetSettings();
+			Assert.AreEqual(staticParser.Count, staticSettings.Count);
 			action(staticParser, staticInstance);
 		}
 		private static void NullParsing(ISettingParser parser, TestClass source)
@@ -75,37 +79,34 @@ namespace AdvorangesSettingParser.Tests
 		}
 		private static void BasicParsing(ISettingParser parser, TestClass source)
 		{
-			var prefix = parser.Prefixes.First();
-			parser.Parse(source, $"{prefix}{nameof(TestClass.StringValue)} StringValueTest");
+			parser.Parse(source, $"{parser.MainPrefix}{nameof(TestClass.StringValue)} StringValueTest");
 			Assert.AreEqual("StringValueTest", source.StringValue);
-			parser.Parse(source, $"{prefix}{nameof(TestClass.IntValue)} 1");
+			parser.Parse(source, $"{parser.MainPrefix}{nameof(TestClass.IntValue)} 1");
 			Assert.AreEqual(1, source.IntValue);
-			parser.Parse(source, $"{prefix}{nameof(TestClass.BoolValue)} true");
+			parser.Parse(source, $"{parser.MainPrefix}{nameof(TestClass.BoolValue)} true");
 			Assert.AreEqual(true, source.BoolValue);
 
-			parser.Parse(source, $"{prefix}{nameof(TestClass.UlongValue)} 18446744073709551615");
+			parser.Parse(source, $"{parser.MainPrefix}{nameof(TestClass.UlongValue)} 18446744073709551615");
 			Assert.AreEqual(ulong.MaxValue, source.UlongValue);
-			parser.Parse(source, $"{prefix}{nameof(TestClass.DateTimeValue)} 05/06/2018");
+			parser.Parse(source, $"{parser.MainPrefix}{nameof(TestClass.DateTimeValue)} 05/06/2018");
 			Assert.AreEqual(new DateTime(2018, 5, 6), source.DateTimeValue);
 		}
 		private static void FlagParsing(ISettingParser parser, TestClass source)
 		{
-			var prefix = parser.Prefixes.First();
 			Assert.AreEqual(false, source.FlagValue);
-			parser.Parse(source, $"{prefix}{nameof(TestClass.FlagValue)}");
+			parser.Parse(source, $"{parser.MainPrefix}{nameof(TestClass.FlagValue)}");
 			Assert.AreEqual(true, source.FlagValue);
-			parser.Parse(source, $"{prefix}{nameof(TestClass.FlagValue)} false");
+			parser.Parse(source, $"{parser.MainPrefix}{nameof(TestClass.FlagValue)} false");
 			Assert.AreEqual(false, source.FlagValue);
 		}
 		private static void ComplicatedParsing(ISettingParser parser, TestClass source)
 		{
 			var testStr = "Space \"Double deep quote\" Test";
-			var prefix = parser.Prefixes.First();
-			var args = $"{prefix}{nameof(TestClass.StringValue)} \"{testStr}\" " +
-				$"{prefix}{nameof(TestClass.FlagValue2)} " +
-				$"{prefix}{nameof(TestClass.BoolValue)} true " +
-				$"{prefix}{nameof(TestClass.UlongValue)} asdf " +
-				$"{prefix}help {nameof(TestClass.FlagValue2)} " +
+			var args = $"{parser.MainPrefix}{nameof(TestClass.StringValue)} \"{testStr}\" " +
+				$"{parser.MainPrefix}{nameof(TestClass.FlagValue2)} " +
+				$"{parser.MainPrefix}{nameof(TestClass.BoolValue)} true " +
+				$"{parser.MainPrefix}{nameof(TestClass.UlongValue)} asdf " +
+				$"{parser.MainPrefix}help {nameof(TestClass.FlagValue2)} " +
 				$"extra";
 			var result = parser.Parse(source, args);
 			Assert.AreEqual(3, result.Successes.Count());

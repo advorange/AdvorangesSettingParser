@@ -27,24 +27,22 @@ namespace AdvorangesSettingParser.Tests
 		public void TestNeededSettings_Test()
 		{
 			var parser = StaticSettingParserRegistry.Instance.Retrieve<TestClass>();
-			var prefix = parser.Prefixes.First();
-
-			var args1 = $"{prefix}{nameof(TestClass.StringValue)} Test";
-			var args2 = $"{prefix}{nameof(TestClass.UlongValue)} 10";
+			var args1 = $"{parser.MainPrefix}{nameof(TestClass.StringValue)} Test";
+			var args2 = $"{parser.MainPrefix}{nameof(TestClass.UlongValue)} 10";
 
 			var object1 = new TestClass();
-			Assert.AreEqual(2, parser.GetNeededSettings(object1).Count());
+			Assert.AreEqual(2, parser.GetNeededSettings(object1).Count);
 			parser.Parse(object1, args1);
-			Assert.AreEqual(1, parser.GetNeededSettings(object1).Count());
+			Assert.AreEqual(1, parser.GetNeededSettings(object1).Count);
 			parser.Parse(object1, args2);
-			Assert.AreEqual(0, parser.GetNeededSettings(object1).Count());
+			Assert.AreEqual(0, parser.GetNeededSettings(object1).Count);
 
 			var object2 = new TestClass();
-			Assert.AreEqual(2, parser.GetNeededSettings(object2).Count());
+			Assert.AreEqual(2, parser.GetNeededSettings(object2).Count);
 			parser.Parse(object2, args1);
-			Assert.AreEqual(1, parser.GetNeededSettings(object2).Count());
+			Assert.AreEqual(1, parser.GetNeededSettings(object2).Count);
 			parser.Parse(object2, args2);
-			Assert.AreEqual(0, parser.GetNeededSettings(object2).Count());
+			Assert.AreEqual(0, parser.GetNeededSettings(object2).Count);
 		}
 		[TestMethod]
 		public void TestRemovedWhenGC_Test()
@@ -54,10 +52,8 @@ namespace AdvorangesSettingParser.Tests
 			GC.WaitForPendingFinalizers();
 
 			var parser = StaticSettingParserRegistry.Instance.Retrieve<TestClass>();
-			var prefix = parser.Prefixes.First();
-
-			var args1 = $"{prefix}{nameof(TestClass.StringValue)} Test";
-			var args2 = $"{prefix}{nameof(TestClass.UlongValue)} 10";
+			var args1 = $"{parser.MainPrefix}{nameof(TestClass.StringValue)} Test";
+			var args2 = $"{parser.MainPrefix}{nameof(TestClass.UlongValue)} 10";
 
 			var object1 = new TestClass();
 			Assert.AreEqual(2, parser.GetNeededSettings(object1).Count);

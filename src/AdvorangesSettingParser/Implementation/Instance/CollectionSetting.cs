@@ -51,7 +51,7 @@ namespace AdvorangesSettingParser.Implementation.Instance
 			=> this.SetCollection(GetValue(), value);
 		/// <inheritdoc />
 		public override IResult TrySetValue(string value)
-			=> TrySetValue(value, new Context { Action = CMAction.Toggle });
+			=> TrySetValue(value, new Context { Action = CollectionModificationAction.Toggle });
 		/// <inheritdoc />
 		public override IResult TrySetValue(string value, ITrySetValueContext context)
 		{

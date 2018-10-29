@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AdvorangesSettingParser.Utils;
-using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Implementation
 {
@@ -16,11 +15,13 @@ namespace AdvorangesSettingParser.Implementation
 		/// The singleton instance of this.
 		/// </summary>
 		public static TryParserRegistry Instance { get; } = new TryParserRegistry();
+		private static MethodInfo _RegMethod { get; } = typeof(TryParserRegistry).GetMethods().Single(x => x.Name == nameof(RegisterNullable));
 
 		/// <summary>
 		/// The types registered in this instance.
 		/// </summary>
-		public IEnumerable<Type> RegisteredTypes => _TryParsers.Keys;
+		public IEnumerable<Type> RegisteredTypes
+			=> _TryParsers.Keys;
 
 		private IDictionary<Type, object> _TryParsers { get; } = new Dictionary<Type, object>();
 
@@ -62,8 +63,7 @@ namespace AdvorangesSettingParser.Implementation
 				return;
 			}
 
-			var method = GetType().GetMethods().Single(x => x.Name == nameof(RegisterNullable));
-			var genericMethod = method.MakeGenericMethod(typeof(T));
+			var genericMethod = _RegMethod.MakeGenericMethod(typeof(T));
 			genericMethod.Invoke(this, new object[] { tryParser });
 		}
 		/// <summary>

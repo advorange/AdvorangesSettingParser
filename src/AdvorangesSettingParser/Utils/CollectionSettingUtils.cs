@@ -48,25 +48,25 @@ namespace AdvorangesSettingParser.Utils
 		{
 			var split = value.Split(new[] { ' ' }, 2);
 			//Do not allow numbers being parsed as the enum in case someone wants to add numbers to a collection
-			var names = Enum.GetNames(typeof(CMAction));
+			var names = Enum.GetNames(typeof(CollectionModificationAction));
 			if (split.Length == 1)
 			{
 				//Only return success if this only value is NOT CMAction
 				//b/c if someone messes up quotes it would attempt to set this otherwise
 				var valid = !names.CaseInsContains(split[0]);
 				return valid
-					? SetValueResult.FromSuccess(setting, value, $"Defaulting action to {CMAction.Toggle}.")
+					? SetValueResult.FromSuccess(setting, value, $"Defaulting action to {CollectionModificationAction.Toggle}.")
 					: SetValueResult.FromError(setting, value, "Cannot provide only an action.");
 			}
 			if (names.CaseInsContains(split[0]))
 			{
-				context.Action = (CMAction)Enum.Parse(typeof(CMAction), split[0], true);
+				context.Action = (CollectionModificationAction)Enum.Parse(typeof(CollectionModificationAction), split[0], true);
 				value = split[1];
 				return SetValueResult.FromSuccess(setting, value, $"Set action to {context.Action}.");
 			}
 			else
 			{
-				return SetValueResult.FromSuccess(setting, value, $"Defaulting action to {CMAction.Toggle}.");
+				return SetValueResult.FromSuccess(setting, value, $"Defaulting action to {CollectionModificationAction.Toggle}.");
 			}
 		}
 		/// <summary>
@@ -85,7 +85,7 @@ namespace AdvorangesSettingParser.Utils
 			bool success;
 			switch (context.Action)
 			{
-				case CMAction.Toggle:
+				case CollectionModificationAction.Toggle:
 					var rCount = source.RemoveAll(value, setting.EqualityComparer, context.MaxRemovalCount);
 					if (rCount <= 0) //Only add if nothing was removed
 					{
@@ -93,11 +93,11 @@ namespace AdvorangesSettingParser.Utils
 					}
 					success = true;
 					break;
-				case CMAction.Add:
+				case CollectionModificationAction.Add:
 					source.Add(value);
 					success = true;
 					break;
-				case CMAction.AddIfMissing:
+				case CollectionModificationAction.AddIfMissing:
 					var contains = source.Contains(value, setting.EqualityComparer);
 					if (!contains) //Only add if not contained in collection
 					{
@@ -105,7 +105,7 @@ namespace AdvorangesSettingParser.Utils
 					}
 					success = !contains;
 					break;
-				case CMAction.Remove:
+				case CollectionModificationAction.Remove:
 					success = source.RemoveAll(value, setting.EqualityComparer, context.MaxRemovalCount) > 0; //Failure if removed nothing
 					break;
 				default:

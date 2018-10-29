@@ -116,13 +116,13 @@ namespace AdvorangesSettingParser.Tests
 			Assert.AreNotEqual(null, setting);
 			var value = (ICollection<string>)setting.GetValue();
 			Assert.AreEqual(0, value.Count);
-			SettingParser.Parse($@"{str} ""{CMAction.Add} dog""");
+			SettingParser.Parse($@"{str} ""{CollectionModificationAction.Add} dog""");
 			Assert.AreEqual(1, value.Count);
-			SettingParser.Parse($@"{str} ""{CMAction.AddIfMissing} dog""");
+			SettingParser.Parse($@"{str} ""{CollectionModificationAction.AddIfMissing} dog""");
 			Assert.AreEqual(1, value.Count);
-			SettingParser.Parse($@"{str} ""{CMAction.AddIfMissing} cat"" {str} ""{CMAction.Toggle} fish""");
+			SettingParser.Parse($@"{str} ""{CollectionModificationAction.AddIfMissing} cat"" {str} ""{CollectionModificationAction.Toggle} fish""");
 			Assert.AreEqual(3, value.Count);
-			var result = SettingParser.Parse($@"{str} ""{CMAction.Remove} asdflkj""");
+			var result = SettingParser.Parse($@"{str} ""{CollectionModificationAction.Remove} asdflkj""");
 			Assert.AreEqual(1, result.Errors.Count());
 		}
 	}

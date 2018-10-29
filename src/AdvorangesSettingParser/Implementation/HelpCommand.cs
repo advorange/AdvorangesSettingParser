@@ -12,6 +12,9 @@ namespace AdvorangesSettingParser.Implementation
 	{
 		private ISettingParser Parent { get; }
 
+		/// <inheritdoc />
+		public override bool IsHelp => true;
+
 		/// <summary>
 		/// Creates an instance of <see cref="HelpCommand"/>.
 		/// </summary>
@@ -26,10 +29,10 @@ namespace AdvorangesSettingParser.Implementation
 		/// <summary>
 		/// Gets a help result for the supplied arguments.
 		/// </summary>
-		/// <param name="args"></param>
+		/// <param name="name"></param>
 		/// <returns></returns>
-		public IResult GetHelp(string args)
-			=> GetHelp(Parent, args);
+		public IResult GetHelp(string name)
+			=> GetHelp(Parent, name);
 		/// <summary>
 		/// Returns information either about the settings in general, or the specified setting.
 		/// </summary>

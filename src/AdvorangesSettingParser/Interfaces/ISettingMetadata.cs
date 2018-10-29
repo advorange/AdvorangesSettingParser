@@ -34,13 +34,31 @@ namespace AdvorangesSettingParser.Interfaces
 		/// </summary>
 		bool IsOptional { get; }
 		/// <summary>
+		/// Indicates the argument is a help command and not a setting.
+		/// </summary>
+		bool IsHelp { get; }
+		/// <summary>
+		/// Indicates that the setting is already in a parser.
+		/// Attempting to add the same setting to multiple parsers will throw an exception.
+		/// </summary>
+		bool IsAssociatedWithParser { get; }
+		/// <summary>
 		/// Indicates that the setting cannot be null.
 		/// </summary>
 		bool CannotBeNull { get; }
 		/// <summary>
+		/// Indicates that the setting has been set.
+		/// </summary>
+		bool HasBeenSet { get; }
+		/// <summary>
 		/// Whether to unescape the quotes in the supplied string before setting it.
 		/// </summary>
 		bool UnescapeBeforeSetting { get; }
+		/// <summary>
+		/// The group number this command is in.
+		/// Groups mean commands which are mutually exclusive meaning if one is set then the rest are not prompted for setting any more.
+		/// </summary>
+		int? Group { get; }
 		/// <summary>
 		/// The type of object this setting is targeting directly.
 		/// For example, if the property to modify is <see cref="ICollection{T}"/> this would be that type.
@@ -51,5 +69,12 @@ namespace AdvorangesSettingParser.Interfaces
 		/// For example, if <see cref="TargetType"/> is <see cref="ICollection{T}"/> this would be the type parameter.
 		/// </summary>
 		Type ValueType { get; }
+
+		/// <summary>
+		/// Registers this setting to the supplied parser.
+		/// Will throw an exception if attempting to register this setting to multiple parsers.
+		/// </summary>
+		/// <param name="parser"></param>
+		void AssociateParser(ISettingParser parser);
 	}
 }

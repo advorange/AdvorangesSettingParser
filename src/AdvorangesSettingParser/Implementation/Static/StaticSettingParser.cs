@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using AdvorangesSettingParser.Interfaces;
 
@@ -44,8 +43,7 @@ namespace AdvorangesSettingParser.Implementation.Static
 				var result = setting.TrySetValue(source, value);
 				if (result.IsSuccess)
 				{
-					var set = SetSettings.GetValue(source, x => new HashSet<IStaticSetting<TSource>>());
-					set.Add(setting);
+					SetSettings.GetValue(source, x => new HashSet<IStaticSetting<TSource>>()).Add(setting);
 				}
 				return result;
 			});
@@ -56,10 +54,7 @@ namespace AdvorangesSettingParser.Implementation.Static
 		/// <param name="source">The targeted source.</param>
 		/// <returns>The settings which still need to be set.</returns>
 		public IReadOnlyCollection<IStaticSetting<TSource>> GetNeededSettings(TSource source)
-		{
-			var set = SetSettings.GetValue(source, x => new HashSet<IStaticSetting<TSource>>());
-			return this.Where(x => !x.IsOptional && !set.Contains(x)).ToArray();
-		}
+			=> GetNeededSettings(SetSettings.GetValue(source, x => new HashSet<IStaticSetting<TSource>>()));
 
 		private class StaticSettingHelpCommand : HelpCommand, IStaticSetting<TSource>
 		{

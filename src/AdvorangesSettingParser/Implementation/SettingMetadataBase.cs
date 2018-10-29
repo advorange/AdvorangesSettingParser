@@ -16,6 +16,10 @@ namespace AdvorangesSettingParser.Implementation
 	public abstract class SettingMetadataBase<TPropertyValue, TValue> : IValueParser<TValue>, ISettingMetadata
 	{
 		/// <inheritdoc />
+		public IReadOnlyCollection<string> Names { get; }
+		/// <inheritdoc />
+		public string MainName { get; }
+		/// <inheritdoc />
 		public string Description { get; set; }
 		/// <inheritdoc />
 		public string Information
@@ -46,21 +50,21 @@ namespace AdvorangesSettingParser.Implementation
 		/// <inheritdoc />
 		public bool IsOptional { get; set; }
 		/// <inheritdoc />
+		public virtual bool IsHelp => false;
+		/// <inheritdoc />
+		public bool IsAssociatedWithParser { get; private set; }
+		/// <inheritdoc />
 		public bool CannotBeNull { get; set; }
 		/// <inheritdoc />
 		public bool HasBeenSet { get; protected set; }
 		/// <inheritdoc />
-		public bool IsHelp { get; }
+		public virtual bool UnescapeBeforeSetting => typeof(TValue) == typeof(string);
 		/// <inheritdoc />
-		public bool UnescapeBeforeSetting { get; set; } = typeof(TValue) == typeof(string);
+		public int? Group { get; set; }
 		/// <inheritdoc />
-		public IReadOnlyCollection<string> Names { get; }
+		public Type TargetType => typeof(TPropertyValue);
 		/// <inheritdoc />
-		public string MainName { get; }
-		/// <inheritdoc />
-		public Type TargetType { get; } = typeof(TPropertyValue);
-		/// <inheritdoc />
-		public Type ValueType { get; } = typeof(TValue);
+		public Type ValueType => typeof(TValue);
 		/// <inheritdoc />
 		public IEqualityComparer<TValue> EqualityComparer
 		{
@@ -88,6 +92,7 @@ namespace AdvorangesSettingParser.Implementation
 			set => _ResetValueFactory = value ?? throw new ArgumentException(nameof(ResetValueFactory));
 		}
 
+		private int _ParserHash { get; set; }
 		private bool _IsFlag { get; set; }
 		private IEqualityComparer<TValue> _EqualityComparer { get; set; } = EqualityComparer<TValue>.Default;
 		private TryParseDelegate<TValue> _Parser { get; set; }
@@ -106,13 +111,12 @@ namespace AdvorangesSettingParser.Implementation
 				throw new ArgumentException("Must supply at least one name.");
 			}
 
-			Names = names.ToImmutableArray();
-			MainName = names.First();
+			var immutable = names.ToImmutableArray();
+			Names = immutable;
+			MainName = immutable[0];
 			_Parser = parser ?? TryParserRegistry.Instance.Retrieve<TValue>();
 		}
 
-		/// <inheritdoc />
-		public override string ToString() => $"{MainName} ({typeof(TValue).Name})";
 		/// <summary>
 		/// Sets the value after validation and sets HasBeenSet to true;
 		/// </summary>
@@ -143,5 +147,23 @@ namespace AdvorangesSettingParser.Implementation
 			HasBeenSet = true;
 			return SetValueResult.FromSuccess(this, result, "Successfully set.");
 		}
+		/// <inheritdoc />
+		public void AssociateParser(ISettingParser parser)
+		{
+			var parserHash = parser.GetHashCode();
+			if (parserHash == _ParserHash)
+			{
+				return;
+			}
+			if (IsAssociatedWithParser)
+			{
+				throw new InvalidOperationException("Cannot associate this setting with multiple parsers.");
+			}
+			IsAssociatedWithParser = true;
+			_ParserHash = parserHash;
+		}
+		/// <inheritdoc />
+		public override string ToString()
+			=> $"{MainName} ({typeof(TValue).Name})";
 	}
 }

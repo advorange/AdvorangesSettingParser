@@ -41,6 +41,7 @@ namespace AdvorangesSettingParser.Results
 		/// Returns the response.
 		/// </summary>
 		/// <returns></returns>
-		public override string ToString() => Response;
+		public override string ToString()
+			=> Response;
 	}
 }

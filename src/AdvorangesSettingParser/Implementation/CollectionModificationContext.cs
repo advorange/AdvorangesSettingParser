@@ -17,12 +17,12 @@ namespace AdvorangesSettingParser.Implementation
 			{
 				switch (Action)
 				{
-					case CMAction.Toggle:
+					case CollectionModificationAction.Toggle:
 						return "toggled";
-					case CMAction.Add:
-					case CMAction.AddIfMissing:
+					case CollectionModificationAction.Add:
+					case CollectionModificationAction.AddIfMissing:
 						return "added";
-					case CMAction.Remove:
+					case CollectionModificationAction.Remove:
 						return "removed";
 					default:
 						throw new ArgumentException($"Unable to convert to string.", nameof(Action));
@@ -32,34 +32,11 @@ namespace AdvorangesSettingParser.Implementation
 		/// <summary>
 		/// How to modify the targeted value.
 		/// </summary>
-		public CMAction Action { get; set; }
+		public CollectionModificationAction Action { get; set; }
 		/// <summary>
 		/// Limits how many items can be removed when finding existing matching values.
 		/// </summary>
 		/// <value></value>
 		public int MaxRemovalCount { get; set; } = int.MaxValue;
-	}
-
-	/// <summary>
-	/// Instructs how to modify the targeted value in the collection.
-	/// </summary>
-	public enum CMAction
-	{
-		/// <summary>
-		/// If in list, will remove. If out of list, will add.
-		/// </summary>
-		Toggle,
-		/// <summary>
-		/// Add no matter what.
-		/// </summary>
-		Add,
-		/// <summary>
-		/// Will only return success if missing then added.
-		/// </summary>
-		AddIfMissing,
-		/// <summary>
-		/// Removes any matching values.
-		/// </summary>
-		Remove,
 	}
 }

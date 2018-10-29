@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using AdvorangesSettingParser.Implementation.Static;
-using AdvorangesSettingParser.Interfaces;
-using AdvorangesUtils;
 
 namespace AdvorangesSettingParser.Implementation
 {
@@ -19,7 +17,8 @@ namespace AdvorangesSettingParser.Implementation
 		/// <summary>
 		/// The types registered in this instance.
 		/// </summary>
-		public IEnumerable<Type> RegisteredTypes => _SettingParsers.Keys;
+		public IEnumerable<Type> RegisteredTypes
+			=> _SettingParsers.Keys;
 
 		private IDictionary<Type, object> _SettingParsers { get; } = new Dictionary<Type, object>();
 

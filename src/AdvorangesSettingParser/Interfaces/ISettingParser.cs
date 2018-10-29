@@ -13,9 +13,9 @@ namespace AdvorangesSettingParser.Interfaces
 		/// </summary>
 		IReadOnlyCollection<string> Prefixes { get; }
 		/// <summary>
-		/// Whether to throw an exception if there is a quote mismatch.
+		/// The first value in <see cref="Prefixes"/>.
 		/// </summary>
-		bool ThrowQuoteError { get; set; }
+		string MainPrefix { get; }
 
 		/// <summary>
 		/// The settings of this parser.

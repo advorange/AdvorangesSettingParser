@@ -8,7 +8,6 @@ using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesSettingParser.Implementation.Static;
 using AdvorangesSettingParser.Interfaces;
-using AdvorangesSettingParser.Results;
 
 namespace AdvorangesSettingParser.Utils
 {
@@ -41,7 +40,7 @@ namespace AdvorangesSettingParser.Utils
 		/// <param name="parser"></param>
 		/// <returns></returns>
 		public static bool AreAllSet(this SettingParser parser)
-			=> parser.GetNeededSettings().Count() == 0;
+			=> parser.GetNeededSettings().Count == 0;
 		/// <summary>
 		/// Returns true if there are 0 needed settings.
 		/// </summary>
@@ -50,7 +49,7 @@ namespace AdvorangesSettingParser.Utils
 		/// <param name="source"></param>
 		/// <returns></returns>
 		public static bool AreAllSet<T>(this StaticSettingParser<T> parser, T source) where T : class
-			=> parser.GetNeededSettings(source).Count() == 0;
+			=> parser.GetNeededSettings(source).Count == 0;
 		/// <summary>
 		/// Gets the member expression from <paramref name="expression"/>.
 		/// </summary>
