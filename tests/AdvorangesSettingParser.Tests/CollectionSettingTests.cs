@@ -123,7 +123,7 @@ namespace AdvorangesSettingParser.Tests
 			SettingParser.Parse($@"{str} ""{CollectionModificationAction.AddIfMissing} cat"" {str} ""{CollectionModificationAction.Toggle} fish""");
 			Assert.AreEqual(3, value.Count);
 			var result = SettingParser.Parse($@"{str} ""{CollectionModificationAction.Remove} asdflkj""");
-			Assert.AreEqual(1, result.Errors.Count());
+			Assert.AreEqual(1, result.Errors.Count);
 		}
 	}
 

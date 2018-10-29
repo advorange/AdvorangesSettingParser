@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AdvorangesSettingParser.Tests
 {
 	[TestClass]
-	public class SettingParsingTest
+	public class SettingParsingTests
 	{
 		[TestMethod]
 		public void NullParsing_Test()
@@ -109,10 +109,10 @@ namespace AdvorangesSettingParser.Tests
 				$"{parser.MainPrefix}help {nameof(TestClass.FlagValue2)} " +
 				$"extra";
 			var result = parser.Parse(source, args);
-			Assert.AreEqual(3, result.Successes.Count());
-			Assert.AreEqual(1, result.Errors.Count());
-			Assert.AreEqual(1, result.UnusedParts.Count());
-			Assert.AreEqual(1, result.Help.Count());
+			Assert.AreEqual(3, result.Successes.Count);
+			Assert.AreEqual(1, result.Errors.Count);
+			Assert.AreEqual(1, result.UnusedParts.Count);
+			Assert.AreEqual(1, result.Help.Count);
 			Assert.AreEqual(testStr, source.StringValue);
 			Assert.AreEqual(true, source.FlagValue2);
 			Assert.AreEqual(true, source.BoolValue);
@@ -122,7 +122,7 @@ namespace AdvorangesSettingParser.Tests
 		{
 			var prefix = parser.Prefixes.First();
 			var result = parser.Parse(source, $"{prefix}{nameof(TestClass.CollectionStrings)} CollectionValue");
-			Assert.AreEqual(1, result.Successes.Count());
+			Assert.AreEqual(1, result.Successes.Count);
 			Assert.AreEqual("CollectionValue", source.CollectionStrings.First());
 		}
 	}

@@ -8,9 +8,9 @@
     <Description>A basic setting parser which is easy to use.</Description>
     <RepositoryType>https://github.com/advorange/AdvorangesSettingParser</RepositoryType>
     <PackageProjectUrl>https://github.com/advorange/AdvorangesSettingParser</PackageProjectUrl>
-    <Version>1.3.2.3</Version>
-    <AssemblyVersion>1.3.2.3</AssemblyVersion>
-    <FileVersion>1.3.2.3</FileVersion>
+    <Version>1.3.2.4</Version>
+    <AssemblyVersion>1.3.2.4</AssemblyVersion>
+    <FileVersion>1.3.2.4</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

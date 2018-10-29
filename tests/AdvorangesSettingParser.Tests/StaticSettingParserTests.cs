@@ -3,9 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using System.Runtime.CompilerServices;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Static;
+using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -65,7 +66,16 @@ namespace AdvorangesSettingParser.Tests
 			//Use reflection to evaluate how many references are being stored
 			var properties = parser.GetType().GetProperties(BindingFlags.Instance | BindingFlags.NonPublic);
 			var property = properties.Single(x => x.Name == "SetSettings");
-			var value = (IEnumerable)property.GetValue(parser);
+			//I have literally zero clue why I can cast ConditionalWeakTable to IEnumerable.
+			//It does not implement IEnumerable and has NO GetEnumerator method.
+			var value = (IEnumerable<KeyValuePair<TestClass, HashSet<IStaticSetting<TestClass>>>>)property.GetValue(parser);
+
+#if false
+			var newTable = new ConditionalWeakTable<string, string>();
+			var iterable = (IEnumerable<KeyValuePair<string, string>>)(object)newTable;
+			var methods = iterable.GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+			//How does this work????
+#endif
 
 			new Action(() =>
 			{
@@ -76,28 +86,17 @@ namespace AdvorangesSettingParser.Tests
 				parser.Parse(object2, args2);
 				Assert.AreEqual(0, parser.GetNeededSettings(object2).Count);
 
-				var nonGCCount = 0;
-				foreach (var element in value)
-				{
-					++nonGCCount;
-				}
-				Assert.AreEqual(2, nonGCCount);
+				Assert.AreEqual(2, value.Count());
 			}).Invoke();
 
 			GC.Collect();
 			GC.WaitForPendingFinalizers();
 
-			var GCCount = 0;
-			foreach (var element in value)
-			{
-				++GCCount;
-			}
-
 			//In release the variable outside the action can be GC'd before it would be in debug.
 #if DEBUG
-			Assert.AreEqual(1, GCCount);
+			Assert.AreEqual(1, value.Count());
 #else
-			Assert.AreEqual(0, GCCount);
+			Assert.AreEqual(0, value.Count());
 #endif
 		}
 	}

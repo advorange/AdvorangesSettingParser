@@ -10,18 +10,18 @@ namespace AdvorangesSettingParser.Interfaces
 		/// <summary>
 		/// Parts that were not used to set something.
 		/// </summary>
-		IEnumerable<IResult> UnusedParts { get; }
+		IReadOnlyCollection<IResult> UnusedParts { get; }
 		/// <summary>
 		/// All successfully set settings.
 		/// </summary>
-		IEnumerable<IResult> Successes { get; }
+		IReadOnlyCollection<IResult> Successes { get; }
 		/// <summary>
 		/// Any errors which occurred when setting something.
 		/// </summary>
-		IEnumerable<IResult> Errors { get; }
+		IReadOnlyCollection<IResult> Errors { get; }
 		/// <summary>
 		/// Result gotten via the help setting.
 		/// </summary>
-		IEnumerable<IResult> Help { get; }
+		IReadOnlyCollection<IResult> Help { get; }
 	}
 }

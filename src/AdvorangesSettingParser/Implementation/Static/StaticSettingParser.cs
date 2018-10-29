@@ -13,6 +13,11 @@ namespace AdvorangesSettingParser.Implementation.Static
 		/// <summary>
 		/// Keeps a list of any objects parsed and which settings have been set on them.
 		/// </summary>
+		/// <remarks>
+		/// This itself cannot be iterated, unless you first box it then cast it to IEnumerable of Kvps (IDictionary does not work) like
+		/// <![CDATA[ (IEnumerable<KeyValuePair<TSource, HashSet<IStaticSetting<TSource>>>>)(object)SetSettings ]]>
+		/// I have no clue how this works because ConditionalWeakTable does not implement IEnumerable at all.
+		/// </remarks>
 		protected ConditionalWeakTable<TSource, HashSet<IStaticSetting<TSource>>> SetSettings { get; } = new ConditionalWeakTable<TSource, HashSet<IStaticSetting<TSource>>>();
 
 		/// <summary>

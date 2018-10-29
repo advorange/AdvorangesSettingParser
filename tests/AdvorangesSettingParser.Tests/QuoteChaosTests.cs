@@ -6,9 +6,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AdvorangesSettingParser.Tests
 {
 	[TestClass]
-	public class QuoteChaosTest
+	public class QuoteChaosTests
 	{
-		static QuoteChaosTest()
+		static QuoteChaosTests()
 		{
 			new StaticSettingParser<Child>
 			{

@@ -11,13 +11,13 @@ namespace AdvorangesSettingParser.Results
 	public class SettingParserResult : Result, ISettingParserResult
 	{
 		/// <inheritdoc />
-		public IEnumerable<IResult> UnusedParts { get; }
+		public IReadOnlyCollection<IResult> UnusedParts { get; }
 		/// <inheritdoc />
-		public IEnumerable<IResult> Successes { get; }
+		public IReadOnlyCollection<IResult> Successes { get; }
 		/// <inheritdoc />
-		public IEnumerable<IResult> Errors { get; }
+		public IReadOnlyCollection<IResult> Errors { get; }
 		/// <inheritdoc />
-		public IEnumerable<IResult> Help { get; }
+		public IReadOnlyCollection<IResult> Help { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="SettingParserResult"/>.

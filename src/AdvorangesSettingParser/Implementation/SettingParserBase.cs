@@ -13,7 +13,7 @@ namespace AdvorangesSettingParser.Implementation
 	/// Base class for parsing settings.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class SettingParserBase<T> : ISettingParser, ICollection<T> where T : ISettingMetadata
+	public abstract class SettingParserBase<T> : ISettingParser, IReadOnlyCollection<T>, ICollection<T> where T : ISettingMetadata
 	{
 		/// <summary>
 		/// The default prefixes used for setting parsing.
@@ -232,7 +232,7 @@ namespace AdvorangesSettingParser.Implementation
 
 		//ISettingParser
 		IReadOnlyCollection<ISettingMetadata> ISettingParser.GetSettings()
-			=> this.Cast<ISettingMetadata>().ToArray();
+			=> (IReadOnlyCollection<ISettingMetadata>)this;
 		bool ISettingParser.TryGetSetting(string name, PrefixState state, out ISettingMetadata setting)
 		{
 			var success = TryGetSetting(name, state, out var temp);
