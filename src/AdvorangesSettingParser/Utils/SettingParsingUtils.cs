@@ -65,8 +65,8 @@ namespace AdvorangesSettingParser.Utils
 			body.Member.DeclaringType.ThrowIfStruct(body.Member.Name);
 			switch (body.Member)
 			{
-				case PropertyInfo property:
-				case FieldInfo field:
+				case PropertyInfo _:
+				case FieldInfo _:
 					try
 					{
 						return setterGenerator(body);
@@ -180,7 +180,7 @@ namespace AdvorangesSettingParser.Utils
 		/// <param name="parsableFirst">Whether to check for the object being parsable first before trying to get the registered setting parser.</param>
 		/// <returns></returns>
 		public static ISettingParserResult Parse<T>(this StaticSettingParserRegistry registry, T source, ParseArgs args, bool parsableFirst = true) where T : class
-			=> registry.GetSettingParser(source).Parse(source, args);
+			=> registry.GetSettingParser(source, parsableFirst).Parse(source, args);
 		/// <summary>
 		/// Registers both the static setting parser and a try parser for it. Also freezes the parser making it unmodifiable.
 		/// </summary>

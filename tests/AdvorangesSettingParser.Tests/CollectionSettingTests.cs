@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesSettingParser.Implementation.Static;
-using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -92,7 +90,7 @@ namespace AdvorangesSettingParser.Tests
 			var value = (ICollection<string>)setting.GetValue();
 			Assert.AreEqual(0, value.Count);
 			setting.SetValue(list);
-			for (int i = 0; i < list.Length; ++i)
+			for (var i = 0; i < list.Length; ++i)
 			{
 				Assert.AreEqual(list[i], value.ElementAt(i));
 			}

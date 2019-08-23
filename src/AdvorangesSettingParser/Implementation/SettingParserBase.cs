@@ -66,9 +66,10 @@ namespace AdvorangesSettingParser.Implementation
 			var errors = new List<IResult>();
 			var help = new List<HelpResult>();
 
-			bool tryParser(string s, out T result) => TryGetSetting(s, PrefixState.Required, out result);
+			bool tryParser(string s, out T result)
+				=> TryGetSetting(s, PrefixState.Required, out result);
 
-			var argMap = ArgumentMappingUtils.CreateArgMap<T>(input, tryParser);
+			var argMap = input.CreateArgMap<T>(tryParser);
 			foreach (var (Setting, Args) in argMap)
 			{
 				if (Setting == null)

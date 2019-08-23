@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Instance;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -76,7 +75,7 @@ namespace AdvorangesSettingParser.Tests
 		{
 			if (IsBenchmark)
 			{
-				for (int i = 0; i < Runs; ++i)
+				for (var i = 0; i < Runs; ++i)
 				{
 					if (i % 2 == 0)
 					{
@@ -102,7 +101,7 @@ namespace AdvorangesSettingParser.Tests
 		{
 			if (IsBenchmark)
 			{
-				for (int i = 0; i < Runs; ++i)
+				for (var i = 0; i < Runs; ++i)
 				{
 					if (i % 2 == 0)
 					{

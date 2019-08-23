@@ -103,7 +103,7 @@ namespace AdvorangesSettingParser.Utils
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
-		public static bool TryParseEmpty<T>(string s, out T value)
+		public static bool TryParseEmpty<T>(string _, out T value)
 		{
 			value = default;
 			return true;

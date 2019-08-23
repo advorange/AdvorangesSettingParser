@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesSettingParser.Implementation.Static;
 using AdvorangesSettingParser.Interfaces;
@@ -37,6 +35,7 @@ namespace AdvorangesSettingParser.Tests
 			var instanceParser = new SettingParser
 			{
 				new Setting<string>(() => instanceInstance.StringValue),
+				new Setting<string>(() => instanceInstance.StringValue2),
 				new Setting<int>(() => instanceInstance.IntValue),
 				new Setting<bool>(() => instanceInstance.BoolValue),
 				new Setting<bool>(() => instanceInstance.FlagValue) { IsFlag = true, },
@@ -53,6 +52,7 @@ namespace AdvorangesSettingParser.Tests
 			var staticParser = new StaticSettingParser<TestClass>
 			{
 				new StaticSetting<TestClass, string>(x => x.StringValue),
+				new StaticSetting<TestClass, string>(x => x.StringValue2),
 				new StaticSetting<TestClass, int>(x => x.IntValue),
 				new StaticSetting<TestClass, bool>(x => x.BoolValue),
 				new StaticSetting<TestClass, bool>(x => x.FlagValue) { IsFlag = true, },
@@ -105,18 +105,21 @@ namespace AdvorangesSettingParser.Tests
 			var args = $"{parser.MainPrefix}{nameof(TestClass.StringValue)} \"{testStr}\" " +
 				$"{parser.MainPrefix}{nameof(TestClass.FlagValue2)} " +
 				$"{parser.MainPrefix}{nameof(TestClass.BoolValue)} true " +
+				$"{parser.MainPrefix}{nameof(TestClass.StringValue2)} \"{testStr}\" " +
 				$"{parser.MainPrefix}{nameof(TestClass.UlongValue)} asdf " +
 				$"{parser.MainPrefix}help {nameof(TestClass.FlagValue2)} " +
+				$"{parser.MainPrefix}{nameof(TestClass.DateTimeValue)} \"1/1/2016 12:00:00 PM\" " +
 				$"extra";
 			var result = parser.Parse(source, args);
-			Assert.AreEqual(3, result.Successes.Count);
+			Assert.AreEqual(5, result.Successes.Count);
 			Assert.AreEqual(1, result.Errors.Count);
 			Assert.AreEqual(1, result.UnusedParts.Count);
 			Assert.AreEqual(1, result.Help.Count);
 			Assert.AreEqual(testStr, source.StringValue);
+			Assert.AreEqual(testStr, source.StringValue2);
 			Assert.AreEqual(true, source.FlagValue2);
 			Assert.AreEqual(true, source.BoolValue);
-			Assert.AreEqual(default(ulong), source.UlongValue);
+			Assert.AreEqual(default, source.UlongValue);
 		}
 		private static void CollectionParsing(ISettingParser parser, TestClass source)
 		{

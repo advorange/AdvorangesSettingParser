@@ -7,6 +7,7 @@ namespace AdvorangesSettingParser.Tests
 	internal class TestClass
 	{
 		public string StringValue { get; set; }
+		public string StringValue2 { get; set; }
 		public int IntValue { get; set; }
 		public bool BoolValue { get; set; }
 		public bool PrivateSetBoolValue { get; private set; }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 
 namespace AdvorangesSettingParser.Implementation
 {
@@ -20,7 +21,7 @@ namespace AdvorangesSettingParser.Implementation
 		/// <returns></returns>
 		public delegate bool ValidateQuote(char? previousChar, char currentChar, char? nextChar);
 
-		private static char[] _DefautQuotes { get; } = new[] { '"' };
+		private static readonly char[] _DefautQuotes = new[] { '"' };
 
 		/// <inheritdoc />
 		public int Count => _Arguments.Length;
@@ -32,10 +33,8 @@ namespace AdvorangesSettingParser.Implementation
 		/// The characters used to end quotes with.
 		/// </summary>
 		public ImmutableArray<char> EndingQuoteCharacters { get; }
-		/// <summary>
-		/// The arguments to be used.
-		/// </summary>
-		private string[] _Arguments { get; }
+
+		private readonly string[] _Arguments;
 
 		/// <summary>
 		/// Creates an instance of <see cref="ParseArgs"/> to remove the need for two methods every time string and string[] are interchangeable.
@@ -56,10 +55,116 @@ namespace AdvorangesSettingParser.Implementation
 		/// <param name="i"></param>
 		/// <returns></returns>
 		public string this[int i]
-		{
-			get => _Arguments[i];
-		}
+			=> _Arguments[i];
 
+		/// <summary>
+		/// Maps each setting of type <typeparamref name="T"/> to a value.
+		/// Can map the same setting multiple times to different values, but will all be in the passed in order.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="tryParser"></param>
+		/// <returns></returns>
+		public IEnumerable<(T Setting, string Args)> CreateArgMap<T>(TryParseDelegate<T> tryParser)
+		{
+			if (Count == 0)
+			{
+				yield break;
+			}
+
+			//Something like -FieldInfo "-Name "Test Value" -Text TestText" (with or without quotes around the whole thing)
+			//Should parse into:
+			//-FieldInfo
+			//	-Name
+			//		Test Value
+			//	-Text
+			//		TestText
+			//Which with the current data structure should be (FieldInfo, "-Name "Test Value" -Text TestText")
+			//then when those get parsed would turn into (Name, Test Value) and (Text, TestText)
+			var currentSetting = default(T);
+			var current = new StringBuilder();
+			foreach (var arg in this)
+			{
+				var trimmed = TrimSingle(arg);
+				//When this is not a setting we add the args onto the current args then return the current values instantly
+				//We can't return Value directly because if there were other quote deepness args we need to count those.
+				if (!tryParser(trimmed, out var setting))
+				{
+					//Trim quotes off the end of a setting value since they're not needed to group anything together anymore
+					//And they just complicate future parsing
+					if (current.Length > 0)
+					{
+						current.Append(" ");
+					}
+					current.Append(arg);
+
+					yield return (currentSetting, TrimSingle(current));
+				}
+				//When this is a setting we only check if there's a setting from the last iteration
+				//If there is, we send that one because there's a chance it could be a parameterless setting
+				else if (currentSetting != null)
+				{
+					yield return (currentSetting, TrimSingle(current));
+				}
+
+				currentSetting = setting;
+				current = new StringBuilder();
+			}
+			//Return any leftover parts which haven't been returned yet
+			if (currentSetting != default || current.Length > 0)
+			{
+				yield return (currentSetting, TrimSingle(current));
+			}
+		}
+		private string TrimSingle(string s)
+		{
+			if (s == null)
+			{
+				return null;
+			}
+
+			foreach (var c in StartingQuoteCharacters)
+			{
+				if (s.StartsWith(c))
+				{
+					s = s.Substring(1);
+					break;
+				}
+			}
+			foreach (var c in EndingQuoteCharacters)
+			{
+				if (s.EndsWith(c))
+				{
+					s = s.Substring(0, s.Length - 1);
+					break;
+				}
+			}
+			return s;
+		}
+		private string TrimSingle(StringBuilder sb)
+		{
+			if (sb.Length == 0)
+			{
+				return null;
+			}
+
+			foreach (var c in StartingQuoteCharacters)
+			{
+				if (sb[0] == c)
+				{
+					sb.Remove(0, 1);
+					break;
+				}
+			}
+			foreach (var c in EndingQuoteCharacters)
+			{
+				if (sb[sb.Length - 1] == c)
+				{
+					--sb.Length;
+					break;
+				}
+			}
+			return sb.ToString();
+		}
 		/// <inheritdoc />
 		public IEnumerator<string> GetEnumerator()
 			=> ((IReadOnlyCollection<string>)_Arguments).GetEnumerator();
@@ -86,7 +191,11 @@ namespace AdvorangesSettingParser.Implementation
 		/// <param name="endQuotes"></param>
 		/// <param name="result"></param>
 		/// <returns></returns>
-		public static bool TryParse(string input, char[] startQuotes, char[] endQuotes, out ParseArgs result)
+		public static bool TryParse(
+			string input,
+			char[] startQuotes,
+			char[] endQuotes,
+			out ParseArgs result)
 		{
 			if (string.IsNullOrWhiteSpace(input))
 			{
@@ -94,14 +203,13 @@ namespace AdvorangesSettingParser.Implementation
 				return true;
 			}
 
-			var startIndexes = GetIndexes(input, startQuotes, allowEscaping: true, (previous, current, next) =>
-			{
-				return previous == null || char.IsWhiteSpace(previous.Value);
-			});
-			var endIndexes = GetIndexes(input, endQuotes, allowEscaping: true, (previous, current, next) =>
-			{
-				return next == null || char.IsWhiteSpace(next.Value) || endQuotes.Contains(next.Value);
-			});
+			bool ValidateStart(char? p, char c, char? n)
+				=> p == null || char.IsWhiteSpace(p.Value);
+			bool ValidateEnd(char? p, char c, char? n)
+				=> n == null || char.IsWhiteSpace(n.Value) || endQuotes.Contains(n.Value);
+
+			var startIndexes = GetIndices(input, startQuotes, allowEscaping: true, ValidateStart);
+			var endIndexes = GetIndices(input, endQuotes, allowEscaping: true, ValidateEnd);
 			return TryParse(input, startQuotes, endQuotes, startIndexes, endIndexes, out result);
 		}
 		/// <summary>
@@ -110,11 +218,17 @@ namespace AdvorangesSettingParser.Implementation
 		/// <param name="input"></param>
 		/// <param name="startQuotes"></param>
 		/// <param name="endQuotes"></param>
-		/// <param name="startIndexes"></param>
-		/// <param name="endIndexes"></param>
+		/// <param name="startIndexes">Assumed to be in order.</param>
+		/// <param name="endIndexes">Assumed to be in order</param>
 		/// <param name="result"></param>
 		/// <returns></returns>
-		public static bool TryParse(string input, char[] startQuotes, char[] endQuotes, int[] startIndexes, int[] endIndexes, out ParseArgs result)
+		public static bool TryParse(
+			string input,
+			char[] startQuotes,
+			char[] endQuotes,
+			int[] startIndexes,
+			int[] endIndexes,
+			out ParseArgs result)
 		{
 			if (startIndexes.Length != endIndexes.Length)
 			{
@@ -128,18 +242,19 @@ namespace AdvorangesSettingParser.Implementation
 				return true;
 			}
 
-			var minStart = startIndexes.Min();
-			var maxEnd = endIndexes.Max();
+			var minStart = startIndexes[0];
+			var maxEnd = endIndexes[endIndexes.Length - 1];
 			if (minStart == 0 && maxEnd == input.Length - 1)
 			{
-				result = new ParseArgs(new[] { GetTrimmedString(input, minStart + 1, maxEnd) }, startQuotes, endQuotes);
+				var trimmed = GetTrimmedString(input, minStart + 1, maxEnd);
+				result = new ParseArgs(new[] { trimmed }, startQuotes, endQuotes);
 				return true;
 			}
 
 			var args = new List<string>();
 			if (minStart != 0)
 			{
-				args.AddRange(input.Substring(0, minStart).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+				args.AddRange(Split(input.Substring(0, minStart)));
 			}
 			//If all start indexes are less than any end index this is fairly easy
 			//Just pair them off from the outside in
@@ -149,37 +264,31 @@ namespace AdvorangesSettingParser.Implementation
 			}
 			else
 			{
-				for (int i = 0, previousEnding = int.MaxValue; i < startIndexes.Length; ++i)
+				for (int i = 0, previousEnd = int.MaxValue; i < startIndexes.Length; ++i)
 				{
 					var start = startIndexes[i];
 					var end = endIndexes[i];
 
-					//If the last ending is before the current start that means everything in between is ignored unless we manually add it
-					if (previousEnding < start)
+					//If the last ending is before the current start that means everything
+					//in between is ignored unless we manually add it
+					//And we need to split it
+					if (previousEnd < start)
 					{
-						AddIfNotWhitespace(args, input, previousEnding + 1, start);
+						var diff = start - previousEnd - 1;
+						args.AddRange(Split(input.Substring(previousEnd + 1, diff)));
 					}
 
-					//Determine how many quotes start before the end of the end at index i
-					var startsBetweenStartAndEnd = 0;
-					for (int k = i + 1; k < startIndexes.Length; ++k)
-					{
-						if (startIndexes[k] > end)
-						{
-							break;
-						}
-						++startsBetweenStartAndEnd;
-						continue;
-					}
-
-					//No starts before next end means the argument is a basic "not nested quotes"
-					//Some starts before next end means the argument is a "there "are nested quotes""
-					AddIfNotWhitespace(args, input, start, previousEnding = endIndexes[i += startsBetweenStartAndEnd] + 1);
+					//No starts before next end means simple quotes
+					//Some starts before next end means nested quotes
+					var skip = startIndexes.Skip(i + 1).Count(x => x < end);
+					previousEnd = endIndexes[i += skip] + 1;
+					AddIfNotWhitespace(args, input, start, previousEnd);
 				}
 			}
+
 			if (maxEnd != input.Length - 1)
 			{
-				args.AddRange(input.Substring(maxEnd + 1).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+				args.AddRange(Split(input.Substring(maxEnd + 1)));
 			}
 			result = new ParseArgs(args, startQuotes, endQuotes);
 			return true;
@@ -192,10 +301,10 @@ namespace AdvorangesSettingParser.Implementation
 		/// <param name="allowEscaping"></param>
 		/// <param name="valid"></param>
 		/// <returns></returns>
-		public static int[] GetIndexes(string input, char[] quotes, bool allowEscaping, ValidateQuote valid)
+		public static int[] GetIndices(string input, char[] quotes, bool allowEscaping, ValidateQuote valid)
 		{
 			var indexes = new List<int>();
-			for (int i = 0; i < input.Length; ++i)
+			for (var i = 0; i < input.Length; ++i)
 			{
 				var currentChar = input[i];
 				if (!quotes.Contains(currentChar))
@@ -219,6 +328,8 @@ namespace AdvorangesSettingParser.Implementation
 		}
 		private static string GetTrimmedString(string input, int start, int end)
 			=> input.Substring(start, end - start).Trim();
+		private static string[] Split(string input)
+			=> input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 		private static void AddIfNotWhitespace(List<string> list, string input, int start, int end)
 		{
 			var trimmed = GetTrimmedString(input, start, end);
@@ -227,6 +338,7 @@ namespace AdvorangesSettingParser.Implementation
 				list.Add(trimmed);
 			}
 		}
+
 		/// <summary>
 		/// Splits the input like command line and uses those as the arguments.
 		/// </summary>
@@ -237,7 +349,7 @@ namespace AdvorangesSettingParser.Implementation
 		/// Returns the array of arguments.
 		/// </summary>
 		/// <param name="args"></param>
-		public static implicit operator string[] (ParseArgs args)
+		public static implicit operator string[](ParseArgs args)
 			=> args._Arguments.ToArray();
 
 		//IReadOnlyCollection

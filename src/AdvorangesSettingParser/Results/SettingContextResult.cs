@@ -26,7 +26,7 @@ namespace AdvorangesSettingParser.Results
 		/// <param name="given"></param>
 		/// <param name="response"></param>
 		protected SettingContextResult(bool isSuccess, string response, ISettingMetadata setting, Type expected, Type given)
-			: base(setting, false, GenerateResponse(setting, expected, given, response))
+			: base(setting, isSuccess, GenerateResponse(setting, expected, given, response))
 		{
 			ExpectedType = expected;
 			GivenType = given;

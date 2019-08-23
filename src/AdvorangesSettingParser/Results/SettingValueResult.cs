@@ -26,7 +26,7 @@ namespace AdvorangesSettingParser.Results
 		/// <param name="value"></param>
 		/// <param name="response"></param>
 		protected SetValueResult(bool isSuccess, string response, ISettingMetadata setting, Type parameterType, object value)
-			: base(setting, isSuccess, GenerateResponse(setting, parameterType, value, response))
+			: base(setting, isSuccess, GenerateResponse(setting, value, response))
 		{
 			ParameterType = parameterType;
 			Value = value;
@@ -50,7 +50,7 @@ namespace AdvorangesSettingParser.Results
 		/// <returns></returns>
 		public static SetValueResult FromSuccess(ISettingMetadata setting, object value, string response)
 			=> new SetValueResult(true, response, setting, setting.ValueType, value);
-		private static string GenerateResponse(ISettingMetadata setting, Type parameterType, object value, string response)
+		private static string GenerateResponse(ISettingMetadata setting, object value, string response)
 			=> $"{response ?? throw new ArgumentException(nameof(response))} ({setting.MainName}, {value?.ToString() ?? "NULL"})".TrimStart();
 	}
 }

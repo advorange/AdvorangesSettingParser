@@ -92,12 +92,12 @@ namespace AdvorangesSettingParser.Implementation
 			set => _ResetValueFactory = value ?? throw new ArgumentException(nameof(ResetValueFactory));
 		}
 
-		private int _ParserHash { get; set; }
-		private bool _IsFlag { get; set; }
-		private IEqualityComparer<TValue> _EqualityComparer { get; set; } = EqualityComparer<TValue>.Default;
-		private TryParseDelegate<TValue> _Parser { get; set; }
-		private Func<TValue, IResult> _Validation { get; set; } = x => Result.FromSuccess("Successfully validated");
-		private Func<TPropertyValue, TPropertyValue> _ResetValueFactory { get; set; } = x => x;
+		private int _ParserHash;
+		private bool _IsFlag;
+		private IEqualityComparer<TValue> _EqualityComparer = EqualityComparer<TValue>.Default;
+		private TryParseDelegate<TValue> _Parser;
+		private Func<TValue, IResult> _Validation = x => Result.FromSuccess("Successfully validated");
+		private Func<TPropertyValue, TPropertyValue> _ResetValueFactory = x => x;
 
 		/// <summary>
 		/// Creates an instance of <see cref="SettingMetadataBase{TPropertyValue, TValue}"/>.

@@ -50,15 +50,3 @@ public class Example
 	}
 }
 ```
-
-This works by abusing `Expression<Func<T>>` inside the `Ref<T>` class.
-
-Speaking of `Ref<T>`, here's a table of its speeds on 50,000,000 gets and sets:
-
-| Test Name | Time (ms) |
-|---|---|
-| Direct getter and setter | 52 |
-| `Expression<Func<T>>` | 479 |
-| `StrongBox<T>` | 381 |
-
-While `Expression<Func<T>>` is the slowest at roughly 9x the speed of direct getting and setting, it's the easiest to use and can even work for private setter properties. However, `Expression<Func<T>>` will throw a runtime exception if the source of the property/field is a struct because it's impossible to tell if the struct is a local value or not local and thus will lead to a copy.
